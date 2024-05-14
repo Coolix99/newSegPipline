@@ -27,5 +27,5 @@ struct_masks_path=os.path.join(structured_data_path,'images','segmentation_pipli
 
 
 """versions"""
-TrainData=0
+Example_version=0
 

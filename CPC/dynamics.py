@@ -52,7 +52,7 @@ def _extend_centers(T, y, x, ymed, xmed, Lx, niter):
     return T
 
 
-def _extend_centers_gpu(neighbors, meds, isneighbor, shape, n_iter=200,
+def _extend_centers_gpu_3d(neighbors, meds, isneighbor, shape, n_iter=200,
                         device=torch.device("cuda")):
     """Runs diffusion on GPU to generate flows for training images or quality control.
 
@@ -79,22 +79,15 @@ def _extend_centers_gpu(neighbors, meds, isneighbor, shape, n_iter=200,
         T[tuple(neighbors[:, 0])] = Tneigh.mean(axis=0)
     del meds, isneighbor, Tneigh
 
-    if T.ndim == 2:
-        grads = T[neighbors[0, [2, 1, 4, 3]], neighbors[1, [2, 1, 4, 3]]]
-        del neighbors
-        dy = grads[0] - grads[1]
-        dx = grads[2] - grads[3]
-        del grads
-        mu_torch = np.stack((dy.cpu().squeeze(0), dx.cpu().squeeze(0)), axis=-2)
-    else:
-        grads = T[tuple(neighbors[:,1:])]
-        del neighbors
-        dz = grads[0] - grads[1]
-        dy = grads[2] - grads[3]
-        dx = grads[4] - grads[5]
-        del grads
-        mu_torch = np.stack(
-            (dz.cpu().squeeze(0), dy.cpu().squeeze(0), dx.cpu().squeeze(0)), axis=-2)
+    
+    grads = T[tuple(neighbors[:,1:])]
+    del neighbors
+    dz = grads[0] - grads[1]
+    dy = grads[2] - grads[3]
+    dx = grads[4] - grads[5]
+    del grads
+    mu_torch = np.stack(
+        (dz.cpu().squeeze(0), dy.cpu().squeeze(0), dx.cpu().squeeze(0)), axis=-2)
     return mu_torch
 
 @njit(nogil=True)
@@ -130,65 +123,6 @@ def get_centers(masks, slices):
     return centers, ext
 
 
-def masks_to_flows_gpu(masks, device=None, niter=None):
-    """Convert masks to flows using diffusion from center pixel.
-
-    Center of masks where diffusion starts is defined using COM.
-
-    Args:
-        masks (int, 2D or 3D array): Labelled masks. 0=NO masks; 1,2,...=mask labels.
-
-    Returns:
-        tuple containing
-            - mu (float, 3D or 4D array): Flows in Y = mu[-2], flows in X = mu[-1].
-                If masks are 3D, flows in Z = mu[0].
-            - meds_p (float, 2D or 3D array): cell centers
-    """
-    if device is None:
-        device = torch.device("cuda")
-
-    Ly0, Lx0 = masks.shape
-    Ly, Lx = Ly0 + 2, Lx0 + 2
-
-    masks_padded = torch.from_numpy(masks.astype("int64")).to(device)
-    masks_padded = F.pad(masks_padded, (1, 1, 1, 1))
-
-    ### get mask pixel neighbors
-    y, x = torch.nonzero(masks_padded, as_tuple=True)
-    neighborsY = torch.stack((y, y - 1, y + 1, y, y, y - 1, y - 1, y + 1, y + 1), dim=0)
-    neighborsX = torch.stack((x, x, x, x - 1, x + 1, x - 1, x + 1, x - 1, x + 1), dim=0)
-    neighbors = torch.stack((neighborsY, neighborsX), dim=0)
-    neighbor_masks = masks_padded[tuple(neighbors)]
-    isneighbor = neighbor_masks == neighbor_masks[0]
-
-    ### get center-of-mass within cell
-    slices = find_objects(masks)
-    # turn slices into array
-    slices = np.array([
-        np.array([i, si[0].start, si[0].stop, si[1].start, si[1].stop])
-        for i, si in enumerate(slices)
-        if si is not None
-    ])
-    centers, ext = get_centers(masks, slices)
-    meds_p = torch.from_numpy(centers).to(device).long()
-    meds_p += 1  # for padding
-
-    ### run diffusion
-    n_iter = 2 * ext.max() if niter is None else niter
-    shape = masks_padded.shape
-    mu = _extend_centers_gpu(neighbors, meds_p, isneighbor, shape, n_iter=n_iter,
-                             device=device)
-
-    # new normalization
-    mu /= (1e-60 + (mu**2).sum(axis=0)**0.5)
-    #mu /= (1e-20 + (mu**2).sum(axis=0)**0.5)
-
-    # put into original image
-    mu0 = np.zeros((2, Ly0, Lx0))
-    mu0[:, y.cpu().numpy() - 1, x.cpu().numpy() - 1] = mu
-
-    return mu0, meds_p.cpu().numpy() - 1
-
 
 def masks_to_flows_gpu_3d(masks, device=None):
     """Convert masks to flows using diffusion from center pixel.
@@ -205,7 +139,7 @@ def masks_to_flows_gpu_3d(masks, device=None):
         device = torch.device("cuda")
 
     Lz0, Ly0, Lx0 = masks.shape
-    Lz, Ly, Lx = Lz0 + 2, Ly0 + 2, Lx0 + 2
+    #Lz, Ly, Lx = Lz0 + 2, Ly0 + 2, Lx0 + 2
 
     masks_padded = torch.from_numpy(masks.astype("int64")).to(device)
     masks_padded = F.pad(masks_padded, (1, 1, 1, 1, 1, 1))
@@ -221,6 +155,7 @@ def masks_to_flows_gpu_3d(masks, device=None):
     # get mask centers
     slices = find_objects(masks)
     centers = np.zeros((masks.max(), 3), "int")
+    ext=[]
     for i, si in enumerate(slices):
         if si is not None:
             sz, sy, sx = si
@@ -240,17 +175,18 @@ def masks_to_flows_gpu_3d(masks, device=None):
             centers[i, 1] = ymed + sy.start
             centers[i, 2] = xmed + sx.start
 
+            ext.append([sz.stop - sz.start + 1, sy.stop - sy.start + 1, sx.stop - sx.start + 1])
+
     # get neighbor validator (not all neighbors are in same mask)
     neighbor_masks = masks_padded[tuple(neighbors)]
     isneighbor = neighbor_masks == neighbor_masks[0]
-    ext = np.array(
-        [[sz.stop - sz.start + 1, sy.stop - sy.start + 1, sx.stop - sx.start + 1]
-         for sz, sy, sx in slices])
+
+    ext = np.array(ext)
     n_iter = 6 * (ext.sum(axis=1)).max()
 
     # run diffusion
     shape = masks_padded.shape
-    mu = _extend_centers_gpu(neighbors, centers, isneighbor, shape, n_iter=n_iter,
+    mu = _extend_centers_gpu_3d(neighbors, centers, isneighbor, shape, n_iter=n_iter,
                              device=device)
     # normalize
     mu /= (1e-60 + (mu**2).sum(axis=0)**0.5)
@@ -258,7 +194,7 @@ def masks_to_flows_gpu_3d(masks, device=None):
     # put into original image
     mu0 = np.zeros((3, Lz0, Ly0, Lx0))
     mu0[:, z.cpu().numpy() - 1, y.cpu().numpy() - 1, x.cpu().numpy() - 1] = mu
-    
+
     return mu0
 
 

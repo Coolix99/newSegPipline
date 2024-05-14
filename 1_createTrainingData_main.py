@@ -2,13 +2,13 @@ import numpy as np
 from typing import List
 import napari
 import os
-#import git
+import git
 import pandas as pd
 from simple_file_checksum import get_checksum
 import random
 import uuid
 import torch
-
+import tifffile as tiff
 
 from config import *
 from IO import *
@@ -63,24 +63,36 @@ def calculateFlow(masks):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
     res=masks_to_flows_gpu_3d(masks,device)
-    print(res.shape)
 
-    viewer = napari.Viewer()
-    viewer.add_labels(masks, name='3D Labels')
-    # Napari expects the vector field in (z, y, x, 3) shape
-    flow_vector_field = res.transpose(1, 2, 3, 0)
-    viewer.add_vectors(flow_vector_field, name='3D Flow Field1', edge_width=0.2, length=1)
-    flow_vector_field = res.transpose(3, 2, 1, 0)
-    viewer.add_vectors(flow_vector_field, name='3D Flow Field2', edge_width=0.2, length=1)
-    flow_vector_field = res.transpose(2, 3, 1, 0)
-    viewer.add_vectors(flow_vector_field, name='3D Flow Field3', edge_width=0.2, length=1)
+    # flow_vector_field = res.transpose(1, 2, 3, 0)
+    # viewer = napari.Viewer()
+    # viewer.add_labels(masks, name='3D Labels')
+    # z, y, x = np.nonzero(masks)
+    # origins = np.stack((z, y, x), axis=-1)
+    # vectors = flow_vector_field[z, y, x]
+    # vector_data = np.stack((origins, vectors), axis=1)
+    # viewer.add_image(np.linalg.norm(flow_vector_field, axis=3), name='norm 3D Flow Field')
+    # viewer.add_vectors(vector_data, name='3D Flow Field', edge_width=0.2, length=5, ndim=3)
+    # napari.run()
 
-    # Start the Napari viewer
-    napari.run()
+    return res
     
 
-def crop_trainData(nuclei_crop,modified_masks, size):
-    pass
+def crop_trainData(nuclei_crop,modified_masks,flow, size, d=10):
+    max_z = nuclei_crop.shape[0] - size[0] - d
+    max_y = nuclei_crop.shape[1] - size[1] - d
+    max_x = nuclei_crop.shape[2] - size[2] - d
+
+    while True:
+        start_z = random.randint(d, max_z)
+        start_y = random.randint(d, max_y)
+        start_x = random.randint(d, max_x)
+        
+        nuclei_patch=nuclei_crop[start_z:start_z+size[0], start_y:start_y+size[1], start_x:start_x+size[2]]
+        if np.sum(nuclei_patch>1e-2)>size[0]*size[1]*size[2]*0.05:
+            masks_patch=modified_masks[start_z:start_z+size[0], start_y:start_y+size[1], start_x:start_x+size[2]]
+            flow_patch=flow[:,start_z:start_z+size[0], start_y:start_y+size[1], start_x:start_x+size[2]]
+            return nuclei_patch,masks_patch,flow_patch
 
 def createTrainingData():
     nuclei_folder_list=os.listdir(struct_nuclei_images_path)
@@ -102,7 +114,7 @@ def createTrainingData():
         nuclei=getImage(os.path.join(nuclei_dir_path,nuclei_file_name))
         print(masks.shape)
         print(nuclei.shape)
-        scale=np.array(nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum'])
+        scale=np.array(nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum']).copy()
         scale[0], scale[2] = scale[2], scale[0]
         print(scale)
         
@@ -126,51 +138,40 @@ def createTrainingData():
         napari.run()
         print(modified_masks.shape)
         
-        calculateFlow(modified_masks)
+        flow=calculateFlow(modified_masks)
 
-        #create 10 examples from this
+        #create N examples from this
         for i in range(10):
-            nuclei_crop,masks_crop=crop_trainData(nuclei_crop,modified_masks, np.array(patch_size))
-
+            nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size))
 
             example_folder_path=create_unique_subfolder(trainData_path)
             print(example_folder_path)
 
+            tiff.imwrite(os.path.join(example_folder_path,'nuclei_patch.tif'), nuclei_patch, dtype=np.float32)
+            tiff.imwrite(os.path.join(example_folder_path,'masks_patch.tif'), masks_patch, dtype=np.int32)
+            np.savez_compressed(os.path.join(example_folder_path,'flow_patch.npz'), flow_patch)
+            np.save(os.path.join(example_folder_path,'profile.npy'),nuclei_profile)
+
+            MetaData_Example={}
+            repo = git.Repo(gitPath,search_parent_directories=True)
+            sha = repo.head.object.hexsha
+            MetaData_Example['git hash']=sha
+            MetaData_Example['git repo']='newSegPipline'
+            MetaData_Example['Example version']=Example_version
+            MetaData_Example['nuc file']='nuclei_patch.tif'
+            MetaData_Example['masks file']='masks_patch.tif'
+            MetaData_Example['flow file']='flow_patch.npz'
+            MetaData_Example['profile file']='profile.npy'
+            MetaData_Example['XYZ size in mum']=nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum']
+            MetaData_Example['axes']=nuclei_MetaData['nuclei_image_MetaData']['axes']
+            MetaData_Example['is control']=nuclei_MetaData['nuclei_image_MetaData']['is control']
+            MetaData_Example['time in hpf']=nuclei_MetaData['nuclei_image_MetaData']['time in hpf']
+            MetaData_Example['experimentalist']=nuclei_MetaData['nuclei_image_MetaData']['experimentalist']
+            writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
 
         return
-        PastMetaData=evalStatus_orient(BRE_dir_path,LMcoord_dir_path)
-        if not isinstance(PastMetaData,dict):
-            continue
 
-        make_path(LMcoord_dir_path)
-        MetaData_image=PastMetaData['BRE_image_MetaData']
-        writeJSON(LMcoord_dir_path,'BRE_image_MetaData',MetaData_image)
-
-        image_file=MetaData_image['BRE image file name']
         
-        #actual calculation
-        print('start interactive session')
-        Orient_df=orient_session(os.path.join(BRE_dir_path,image_file))
-        
-        Orient_file_name=BRE_folder+'_Orient.h5'
-        Orient_file=os.path.join(LMcoord_dir_path,Orient_file_name)
-        Orient_df.to_hdf(Orient_file, key='data', mode='w')
-
-        MetaData_Orient={}
-        repo = git.Repo(gitPath,search_parent_directories=True)
-        sha = repo.head.object.hexsha
-        MetaData_Orient['git hash']=sha
-        MetaData_Orient['git repo']='BRE_Trafo'
-        MetaData_Orient['Orient version']=Orient_version
-        MetaData_Orient['Orient file']=Orient_file_name
-        MetaData_Orient['XYZ size in mum']=MetaData_image['XYZ size in mum']
-        MetaData_Orient['axes']=MetaData_image['axes']
-        MetaData_Orient['is control']=MetaData_image['is control']
-        MetaData_Orient['time in hpf']=MetaData_image['time in hpf']
-        MetaData_Orient['experimentalist']=MetaData_image['experimentalist']
-        check_Orient=get_checksum(Orient_file, algorithm="SHA1")
-        MetaData_Orient['output Orient checksum']=check_Orient
-        writeJSON(LMcoord_dir_path,'Orient_MetaData',MetaData_Orient)
 
 
 def generate_synthetic_3d_data(shape=(64, 32, 70), num_objects=5):
