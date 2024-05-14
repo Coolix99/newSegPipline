@@ -138,7 +138,7 @@ def createTrainingData():
         flow=calculateFlow(modified_masks)
 
         #create N examples from this
-        for i in range(10):
+        for i in range(20):
             nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size))
 
             example_folder_path=create_unique_subfolder(trainData_path)
