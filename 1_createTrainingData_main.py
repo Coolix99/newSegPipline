@@ -1,10 +1,7 @@
 import numpy as np
-from typing import List
 import napari
 import os
 import git
-import pandas as pd
-from simple_file_checksum import get_checksum
 import random
 import uuid
 import torch
@@ -203,5 +200,5 @@ def test():
     calculateFlow(labels)
 
 if __name__ == "__main__":
-    test()
-    #createTrainingData()
+    #test()
+    createTrainingData()
