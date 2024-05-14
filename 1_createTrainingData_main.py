@@ -5,9 +5,13 @@ import os
 import git
 import pandas as pd
 from simple_file_checksum import get_checksum
+import random
 
 from config import *
 from IO import *
+
+from CPC.CPC_config import patch_size
+from CPC.std_op import prepareExample
 
 def orient_session(im_file):
     im=getImage(im_file)
@@ -118,42 +122,75 @@ def orient_session(im_file):
 
     return df
 
-def evalStatus_orient(image_dir_path,LMcoord_dir_path):
+def crop_image_at_random(nuclei,masks, size):
     """
-    checks MetaData to desire wether to evaluate the file or not
-    returns a dict of MetaData to be written if we should evaluate the file
+    Crop a patch from a 3D image at a random start coordinate.
+
+    :param nuclei: 3D array from which to crop the patch.
+    :param masks: 3D array from which to crop the patch.
+    :param size: List of three integers specifying the size of the patch in each dimension.
+    :return: Cropped patch as a 3D array.
     """
-    AllMetaData_image=get_JSON(image_dir_path)
-    if not 'BRE_image_MetaData' in AllMetaData_image:
-        print('no BRE MetaData -> skip')
-        return False
+    # Calculate the maximum valid start coordinates to ensure the patch does not go out of bounds
+    max_z = nuclei.shape[0] - size[0]
+    max_y = nuclei.shape[1] - size[1]
+    max_x = nuclei.shape[2] - size[2]
 
-    if not isinstance(AllMetaData_image['BRE_image_MetaData'],dict):
-        print('BRE MetaData not good')
-        return False
-    
-    res={}
-    res['BRE_image_MetaData']=AllMetaData_image['BRE_image_MetaData']
+    while True:
+        start_z = random.randint(0, max_z)
+        start_y = random.randint(0, max_y)
+        start_x = random.randint(0, max_x)
+        
+        nuclei_crop=nuclei[start_z:start_z+size[0], start_y:start_y+size[1], start_x:start_x+size[2]]
+        if np.sum(nuclei_crop>1e-2)>size[0]*size[1]*size[2]*0.2:
+            return nuclei_crop,masks[start_z:start_z+size[0], start_y:start_y+size[1], start_x:start_x+size[2]] 
 
-    AllMetaData_LM=get_JSON(LMcoord_dir_path)
-    if not isinstance(AllMetaData_LM,dict):
-        print('nothing done jet')
-        return res  #do it
-    try:
-        if AllMetaData_LM['Orient_MetaData']['Orient version']>=Orient_version:
-            print('already done')
-            return False    #skip
-    except:
-        return res  #corrupted -> do again
     
 def createTrainingData():
-    BRE_folder_list=os.listdir(BRE_images_path)
-    for BRE_folder in BRE_folder_list:
-        print(BRE_folder)
+    nuclei_folder_list=os.listdir(struct_nuclei_images_path)
+    random.shuffle(nuclei_folder_list)
+    for nuclei_folder in nuclei_folder_list:
+        print(nuclei_folder)
 
-        BRE_dir_path=os.path.join(BRE_images_path,BRE_folder)
-        LMcoord_dir_path=os.path.join(LMcoord_path,BRE_folder[:-3] + "nuclei"+'_LMcoord')
+        masks_dir_path=os.path.join(struct_masks_path,nuclei_folder+'_filtered_fp_masks')
+        masks_MetaData=get_JSON(masks_dir_path)
+        if masks_MetaData=={}:
+            continue
+        
+        nuclei_dir_path=os.path.join(struct_nuclei_images_path,nuclei_folder)
+        nuclei_MetaData=get_JSON(nuclei_dir_path)
 
+        masks_file_name=masks_MetaData['masks_MetaData']['masks file']
+        masks=getImage(os.path.join(masks_dir_path,masks_file_name))
+        nuclei_file_name=nuclei_MetaData['nuclei_image_MetaData']['nuclei image file name']
+        nuclei=getImage(os.path.join(nuclei_dir_path,nuclei_file_name))
+        print(masks.shape)
+        print(nuclei.shape)
+        scale=np.array(nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum'])
+        scale[0], scale[2] = scale[2], scale[0]
+        print(scale)
+        
+        nuclei,masks,nuclei_profile=prepareExample(nuclei,masks,scale)
+        print(nuclei.shape)
+
+        nuclei_crop,masks_crop=crop_image_at_random(nuclei,masks, 5*np.array(patch_size))
+        print(nuclei_crop.shape)
+        print(np.max(masks))
+
+        viewer = napari.Viewer(ndisplay=3)
+        viewer.add_image(nuclei_crop,name='nuclei_crop')
+        viewer.add_labels(masks_crop,name='masks_crop')
+        modified_masks=None
+        @viewer.bind_key('S')
+        def save_changes(viewer):
+            nonlocal modified_masks
+            # This function can be triggered by pressing 'S' and will save the current state of the mask.
+            modified_masks = viewer.layers['masks_crop'].data
+            print('Modifications saved.')
+        napari.run()
+        print(modified_masks.shape)
+        
+        return
         PastMetaData=evalStatus_orient(BRE_dir_path,LMcoord_dir_path)
         if not isinstance(PastMetaData,dict):
             continue

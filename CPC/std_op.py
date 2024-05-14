@@ -2,6 +2,8 @@ import pyclesperanto_prototype as cle
 import numpy as np
 from scipy.stats import iqr, kurtosis
 
+from CPC.CPC_config import *
+
 def getProfile(im):
     """
     Calculates a profile of intensity distribution statistics for non-zero pixels in the image.
@@ -38,14 +40,10 @@ def getProfile(im):
 
     return profile
 
-
-def down_scale(image):
-    return cle.resample(image, factor_x=0.5, factor_y=0.5, factor_z=0.5)
-
-def std_scaling(image,scale,target_scale=np.array((0.8,0.8,0.8))):
-    factor=scale/target_scale
+def std_scaling(image,scale,interpolate=False):
+    factor=scale/target_scaling
     # Use pyclesperanto's resample method to rescale the image
-    rescaled_image = cle.resample(image, factor_x=factor[2], factor_y=factor[1], factor_z=factor[0])
+    rescaled_image = cle.resample(image, factor_x=factor[2], factor_y=factor[1], factor_z=factor[0],linear_interpolation=interpolate)
     return rescaled_image
 
 def std_filtering(image):
@@ -78,3 +76,15 @@ def normalize_image_intensities(image):
     normalized_image[mask] = np.minimum(image[mask] / percentile_99, 1)
     
     return normalized_image
+
+def prepareData(orig_nuclei,orig_scale):
+    nuclei=std_scaling(orig_nuclei,orig_scale,True)
+    nuclei=std_filtering(nuclei).get()
+    nuclei=normalize_image_intensities(nuclei)
+    profile=getProfile(nuclei)
+    return nuclei,profile
+
+def prepareExample(orig_nuclei,orig_masks,orig_scale):
+    prepared_nuclei,nuclei_profile=prepareData(orig_nuclei,orig_scale)
+    prepared_masks=std_scaling(orig_masks,orig_scale,False).get().astype(int)
+    return prepared_nuclei,prepared_masks,nuclei_profile

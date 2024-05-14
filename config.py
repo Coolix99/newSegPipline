@@ -21,9 +21,9 @@ gitPath=script_dir
 
 
 #mounted
-BRE_images_path=os.path.join(structured_data_path,'images','RAW_images_and_splitted','raw_images_BRE')
-LMcoord_path=os.path.join(structured_data_path,'images','fin_geometry','LM_coord')
+struct_nuclei_images_path=os.path.join(structured_data_path,'images','RAW_images_and_splitted','raw_images_nuclei')
+struct_masks_path=os.path.join(structured_data_path,'images','segmentation_pipline','masks_images')
 
 """versions"""
-Orient_version=0
+TrainData=0
 
