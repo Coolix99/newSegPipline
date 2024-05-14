@@ -9,17 +9,17 @@ import numpy as np
 import tifffile
 from tqdm import trange
 from numba import njit, prange, float32, int32, vectorize
-import cv2
-import fastremap
+#import cv2
+#import fastremap
 
 
 
-from . import utils, metrics, transforms
+#from . import utils, metrics, transforms
 
 import torch
 from torch import optim, nn
 import torch.nn.functional as F
-from . import resnet_torch
+#from . import resnet_torch
 
 TORCH_ENABLED = True
 torch_GPU = torch.device("cuda")
@@ -220,7 +220,6 @@ def masks_to_flows_gpu_3d(masks, device=None):
     
     # get mask centers
     slices = find_objects(masks)
-
     centers = np.zeros((masks.max(), 3), "int")
     for i, si in enumerate(slices):
         if si is not None:
@@ -259,8 +258,8 @@ def masks_to_flows_gpu_3d(masks, device=None):
     # put into original image
     mu0 = np.zeros((3, Lz0, Ly0, Lx0))
     mu0[:, z.cpu().numpy() - 1, y.cpu().numpy() - 1, x.cpu().numpy() - 1] = mu
-    mu_c = np.zeros_like(mu0)
-    return mu0, mu_c
+    
+    return mu0
 
 
 def masks_to_flows_cpu(masks, device=None, niter=None):
