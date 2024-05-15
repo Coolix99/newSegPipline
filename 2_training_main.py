@@ -114,10 +114,10 @@ def train_main():
         for images, masks, flows, prof in train_loader:
             images, masks, flows, prof = images.to(device), masks.to(device), flows.to(device), prof.to(device)
             optimizer.zero_grad()
-            seg_probs, pred_flows = model(images, prof)
+            seg_logits, pred_flows = model(images, prof)
             
             # Compute segmentation loss
-            loss_segmentation = criterion_segmentation(seg_probs, masks.float())
+            loss_segmentation = criterion_segmentation(seg_logits, masks.float())
             
             # Compute flow field loss
             loss_flow = angle_loss(pred_flows, flows, masks)
@@ -134,10 +134,10 @@ def train_main():
         with torch.no_grad():
             for images, masks, flows, prof in val_loader:
                 images, masks, flows, prof = images.to(device), masks.to(device), flows.to(device), prof.to(device)
-                seg_probs, pred_flows = model(images, prof)
+                seg_logits, pred_flows = model(images, prof)
                 
                 # Compute segmentation loss
-                loss_segmentation = criterion_segmentation(seg_probs, masks.float())
+                loss_segmentation = criterion_segmentation(seg_logits, masks.float())
                 
                 # Compute flow field loss
                 loss_flow = angle_loss(pred_flows, flows, masks)

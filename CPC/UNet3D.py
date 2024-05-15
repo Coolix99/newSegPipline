@@ -94,10 +94,9 @@ class UNet3D(nn.Module):
         
         # Output for segmentation
         seg_logits = self.seg_outc(x)
-        seg_probs = torch.sigmoid(seg_logits)
 
         # Output for flow field
         flow_field = self.flow_outc(x)
         flow_field = torch.nn.functional.normalize(flow_field, p=2, dim=1)
 
-        return seg_probs, flow_field
+        return seg_logits, flow_field
