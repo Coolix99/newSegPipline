@@ -14,6 +14,7 @@ if(machine=='Laptop'):
 if(machine=='BA'):
     structured_data_path=(r'/media/max_kotz/structured_data/{}').format("")
     structured_data_path=(r'/home/max/Documents/02_Data/structured_data/{}').format("")
+    trainData_path=(r'/media/max_kotz/train_data/{}').format("")
 
 """path structure"""
 #local

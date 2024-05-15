@@ -74,7 +74,6 @@ def calculateFlow(masks):
 
     return res
     
-
 def crop_trainData(nuclei_crop,modified_masks,flow, size, d=10):
     max_z = nuclei_crop.shape[0] - size[0] - d
     max_y = nuclei_crop.shape[1] - size[1] - d
@@ -90,6 +89,24 @@ def crop_trainData(nuclei_crop,modified_masks,flow, size, d=10):
             masks_patch=modified_masks[start_z:start_z+size[0], start_y:start_y+size[1], start_x:start_x+size[2]]
             flow_patch=flow[:,start_z:start_z+size[0], start_y:start_y+size[1], start_x:start_x+size[2]]
             return nuclei_patch,masks_patch,flow_patch
+
+def relabel_image(image):
+    # Get unique labels, excluding the background (0)
+    unique_labels = np.unique(image)
+    unique_labels = unique_labels[unique_labels != 0]
+
+    # Create a mapping from old labels to new labels
+    new_labels = np.arange(1, len(unique_labels) + 1)
+    label_mapping = dict(zip(unique_labels, new_labels))
+
+    # Create an output image to store the relabeled data
+    relabeled_image = np.zeros_like(image)
+
+    # Apply the label mapping
+    for old_label, new_label in label_mapping.items():
+        relabeled_image[image == old_label] = new_label
+
+    return relabeled_image
 
 def createTrainingData():
     nuclei_folder_list=os.listdir(struct_nuclei_images_path)
@@ -140,6 +157,7 @@ def createTrainingData():
         #create N examples from this
         for i in range(20):
             nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size))
+            masks_patch=relabel_image(masks_patch).astype(np.int32)
 
             example_folder_path=create_unique_subfolder(trainData_path)
             print(example_folder_path)
@@ -167,9 +185,6 @@ def createTrainingData():
             writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
 
         return
-
-        
-
 
 def generate_synthetic_3d_data(shape=(64, 32, 70), num_objects=5):
     data = np.zeros(shape, dtype=np.float32)
