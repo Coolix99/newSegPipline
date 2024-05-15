@@ -38,7 +38,7 @@ class Up(nn.Module):
             # Correctly calculate total input channels for convolution
             self.conv = DoubleConv(in1_channels+in2_channels, out_channels)
         else:
-            self.up = nn.ConvTranspose3d(in1_channels,in2_channels, kernel_size=2, stride=2)
+            self.up = nn.ConvTranspose3d(in1_channels,in1_channels, kernel_size=2, stride=2)
             self.conv = DoubleConv(in1_channels+in2_channels, out_channels)
 
 
@@ -71,8 +71,8 @@ class UNet3D(nn.Module):
         self.down2 = Down(64, 128)
         self.down3 = Down(128, 256)
 
-        self.context_conv = nn.Linear(context_size, 64 * 6 * 6 * 6)  
-        self.up1 = Up(352, 128, 128, bilinear)
+        self.context_conv = nn.Linear(context_size, 64 * 8 * 8 * 8)  
+        self.up1 = Up(320, 128, 128, bilinear)
         self.up2 = Up(128, 64, 64, bilinear) 
         self.up3 = Up(64, 64, 64, bilinear)
         self.seg_outc = OutConv(64, 2)  # Output layer for segmentation
@@ -85,7 +85,8 @@ class UNet3D(nn.Module):
         x4 = self.down3(x3)
 
         # Inject context
-        context_features = self.context_conv(context_vector).view(-1, 64, 6, 6, 6)  
+        context_features = self.context_conv(context_vector).view(-1, 64, 8, 8, 8)  
+        
         x4 = torch.cat([x4, context_features], dim=1)  
         x = self.up1(x4, x3)
         x = self.up2(x, x2)

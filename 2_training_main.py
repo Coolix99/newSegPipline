@@ -11,7 +11,7 @@ from NucleiDataset import NucleiDataset
 from config import *
 from IO import *
 from CPC.CPC_config import batch_size
-from CPC import UNet3D
+from CPC.UNet3D import UNet3D
 
 
 
@@ -64,7 +64,7 @@ def train_main():
         mask_img_list.append(masks_img>0)
         flow_list.append(flow)
         profil_list.append(profil)
-        break
+        
         #plot_example(nuc_img,masks_img,flow)
 
     dataset = NucleiDataset(nuc_img_list, mask_img_list, flow_list, profil_list)
@@ -82,7 +82,7 @@ def train_main():
 
     # Initialize model
     n_channels = 1  # Adjust this if your input has more channels
-    context_size = 9
+    context_size = 8
     model = UNet3D(n_channels, context_size).to(device)
 
     # Define loss functions
