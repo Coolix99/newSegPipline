@@ -135,7 +135,7 @@ def createTrainingData():
         nuclei,masks,nuclei_profile=prepareExample(nuclei,masks,scale)
         print(nuclei.shape)
 
-        nuclei_crop,masks_crop=crop_image_at_random(nuclei,masks, 5*np.array(patch_size))
+        nuclei_crop,masks_crop=crop_image_at_random(nuclei,masks, 4*np.array(patch_size))
         print(nuclei_crop.shape)
         print(np.max(masks))
 
@@ -155,7 +155,7 @@ def createTrainingData():
         flow=calculateFlow(modified_masks)
 
         #create N examples from this
-        for i in range(20):
+        for i in range(4*4*4*2):
             nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size))
             masks_patch=relabel_image(masks_patch).astype(np.int32)
 
