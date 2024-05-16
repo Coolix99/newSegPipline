@@ -4,8 +4,8 @@ import os
 from torch.utils.data import DataLoader, random_split
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import time
+import git
 
 from NucleiDataset import NucleiDataset
 from config import *
@@ -27,6 +27,24 @@ def plot_example(nuc_img,masks_img,flow):
     viewer.add_image(np.linalg.norm(flow_vector_field, axis=3), name='norm 3D Flow Field')
     viewer.add_vectors(vector_data, name='3D Flow Field', edge_width=0.1, length=1, ndim=3)
     napari.run()
+
+def save_model(elapsed_time,model,avg_train_loss,avg_val_loss):
+    torch.save(model.state_dict(), os.path.join(model_folder_path,'model_checkpoint.pth'))
+    print("Checkpoint saved as model_checkpoint.pth")
+    print(f"Elapsed time: {elapsed_time:.2f} seconds")   
+
+    MetaData_model={}
+    repo = git.Repo(gitPath,search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    MetaData_model['git hash']=sha
+    MetaData_model['git repo']='newSegPipline'
+    MetaData_model['Training version']=Training_version
+    MetaData_model['model file']='model_checkpoint.pth'
+    MetaData_model['elapsed_time']=elapsed_time
+    MetaData_model['avg_train_loss']=avg_train_loss
+    MetaData_model['avg_val_loss']=avg_val_loss
+
+    writeJSON(model_folder_path,'Model_MetaData',MetaData_model)
 
 def train_main():
     #collect Data
@@ -86,8 +104,8 @@ def train_main():
     model = UNet3D(n_channels, context_size).to(device)
 
     # Define loss functions
-    class_weights = torch.tensor([1.0, 10.0], dtype=torch.float32).to(device)  # Adjust class weights as needed
-    criterion_segmentation = nn.BCEWithLogitsLoss(pos_weight=class_weights)
+    class_weights = torch.tensor([1.0, 1.0], dtype=torch.float32).to(device)  # Adjust class weights as needed
+    criterion_segmentation = nn.CrossEntropyLoss(weight=class_weights)
 
     def angle_loss(pred_flow, true_flow, mask):
         # Calculate cosine similarity
@@ -116,8 +134,8 @@ def train_main():
             optimizer.zero_grad()
             seg_logits, pred_flows = model(images, prof)
             
-            # Compute segmentation loss
-            loss_segmentation = criterion_segmentation(seg_logits, masks.float())
+            loss_segmentation = criterion_segmentation(seg_logits, masks.long())
+
             
             # Compute flow field loss
             loss_flow = angle_loss(pred_flows, flows, masks)
@@ -137,7 +155,7 @@ def train_main():
                 seg_logits, pred_flows = model(images, prof)
                 
                 # Compute segmentation loss
-                loss_segmentation = criterion_segmentation(seg_logits, masks.float())
+                loss_segmentation = criterion_segmentation(seg_logits, masks.long())
                 
                 # Compute flow field loss
                 loss_flow = angle_loss(pred_flows, flows, masks)
@@ -153,10 +171,9 @@ def train_main():
         # Checkpoint model if validation loss improved
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
-            torch.save(model.state_dict(), 'model_checkpoint.pth')
-            print("Checkpoint saved as model_checkpoint.pth")
             elapsed_time = time.time() - start_time
-            print(f"Elapsed time: {elapsed_time:.2f} seconds")   
+            save_model(elapsed_time,model,epoch,avg_train_loss,avg_val_loss)
+            
 
 if __name__ == "__main__":
     train_main() 

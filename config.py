@@ -15,6 +15,7 @@ if(machine=='BA'):
     structured_data_path=(r'/media/max_kotz/structured_data/{}').format("")
     structured_data_path=(r'/home/max/Documents/02_Data/structured_data/{}').format("")
     trainData_path=(r'/media/max_kotz/train_data/{}').format("")
+    model_folder_path=(r'/media/max_kotz/models/{}').format("")
 
 """path structure"""
 #local
@@ -27,6 +28,8 @@ struct_nuclei_images_path=os.path.join(structured_data_path,'images','RAW_images
 struct_masks_path=os.path.join(structured_data_path,'images','segmentation_pipline','masks_images')
 
 
+
 """versions"""
-Example_version=0
+Example_version=1
+Training_version=1
 
