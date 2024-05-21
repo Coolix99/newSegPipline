@@ -28,8 +28,9 @@ def plot_example(nuc_img,masks_img,flow):
     viewer.add_vectors(vector_data, name='3D Flow Field', edge_width=0.1, length=1, ndim=3)
     napari.run()
 
-def save_model(elapsed_time,model,avg_train_loss,avg_val_loss):
-    torch.save(model.state_dict(), os.path.join(model_folder_path,'model_checkpoint.pth'))
+def save_model(elapsed_time,model,avg_train_loss,avg_val_loss,name):
+    model_file_name='checkpoint_'+name+'.pth'
+    torch.save(model.state_dict(), os.path.join(model_folder_path,))
     print("Checkpoint saved as model_checkpoint.pth")
     print(f"Elapsed time: {elapsed_time:.2f} seconds")   
 
@@ -39,7 +40,7 @@ def save_model(elapsed_time,model,avg_train_loss,avg_val_loss):
     MetaData_model['git hash']=sha
     MetaData_model['git repo']='newSegPipline'
     MetaData_model['Training version']=Training_version
-    MetaData_model['model file']='model_checkpoint.pth'
+    MetaData_model['model file']=model_file_name
     MetaData_model['elapsed_time']=elapsed_time
     MetaData_model['avg_train_loss']=avg_train_loss
     MetaData_model['avg_val_loss']=avg_val_loss
@@ -136,7 +137,6 @@ def pre_train_main():
             
             loss_segmentation = criterion_segmentation(seg_logits, masks.long())
 
-            
             # Compute flow field loss
             loss_flow = angle_loss(pred_flows, flows, masks)
             
@@ -172,7 +172,7 @@ def pre_train_main():
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             elapsed_time = time.time() - start_time
-            save_model(elapsed_time,model,epoch,avg_train_loss,avg_val_loss)
+            save_model(elapsed_time,model,epoch,avg_train_loss,avg_val_loss,'pretraining')
             
 
 if __name__ == "__main__":
