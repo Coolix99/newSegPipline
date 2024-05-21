@@ -18,6 +18,11 @@ if(machine=='BA'):
     trainData_path=(r'/media/max_kotz/train_data/{}').format("")
     model_folder_path=(r'/media/max_kotz/models/{}').format("")
 
+if(machine=='Alpha'):
+    structured_data_path=(r'/home/max/Documents/02_Data/structured_data/{}').format("")
+    pretrainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/pre_train_data/pre_train_data/{}').format("")
+    model_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/pre_train_data/pre_train_data/models/{}').format("")
+
 """path structure"""
 #local
 script_dir = os.path.dirname(os.path.abspath(__file__))
