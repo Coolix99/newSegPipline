@@ -8,7 +8,35 @@ import json
 
 from config import *
 
+import h5py
 
+def save_compressed_array(filename, array, mask):
+    # Ensure the mask is boolean
+    mask = mask.astype(bool)
+    
+    # Extract non-zero elements using the mask
+    non_zero_elements = array[mask]
+    
+    # Save the mask, non-zero elements, and original shape to a file
+    with h5py.File(filename, 'w') as f:
+        f.create_dataset('mask', data=mask, compression='gzip')
+        f.create_dataset('non_zero_elements', data=non_zero_elements, compression='gzip')
+        f.attrs['shape'] = array.shape
+
+def load_compressed_array(filename):
+    # Load the mask, non-zero elements, and original shape from the file
+    with h5py.File(filename, 'r') as f:
+        mask = f['mask'][:]
+        non_zero_elements = f['non_zero_elements'][:]
+        shape = f.attrs['shape']
+
+    # Create an empty array of the original shape
+    array = np.zeros(shape, dtype=non_zero_elements.dtype)
+
+    # Reconstruct the original array using the mask and the non-zero elements
+    array[mask] = non_zero_elements
+
+    return array
 
 def getImage(file):
     with tifffile.TiffFile(file) as tif:

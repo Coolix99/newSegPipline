@@ -4,6 +4,10 @@ from scipy.stats import iqr, kurtosis
 
 from CPC.CPC_config import *
 
+
+device = cle.select_device(dev_type='gpu')
+print("Used GPU: ", device)
+
 def getProfile(im):
     """
     Calculates a profile of intensity distribution statistics for non-zero pixels in the image.
@@ -48,7 +52,7 @@ def std_scaling(image,scale,interpolate=False):
 
 def std_filtering(image):
     image = cle.median_sphere(image, None, 1.0, 1.0, 1.0)
-    image = cle.top_hat_sphere(image, None, 15.0, 15.0, 4.0)
+    #image = cle.top_hat_sphere(image, None, 15.0, 15.0, 4.0)
     return image/np.max(image)
 
 def normalize_image_intensities(image):
@@ -77,7 +81,9 @@ def normalize_image_intensities(image):
     
     return normalized_image
 
+
 def prepareData(orig_nuclei,orig_scale):
+    
     nuclei=std_scaling(orig_nuclei,orig_scale,True)
     nuclei=std_filtering(nuclei).get()
     nuclei=normalize_image_intensities(nuclei)

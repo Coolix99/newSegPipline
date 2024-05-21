@@ -14,7 +14,7 @@ from CPC.CPC_config import patch_size
 from CPC.std_op import prepareExample
 from CPC.dynamics import masks_to_flows_gpu_3d
 
-def crop_image_at_random(nuclei,masks, size):
+def crop_image_at_random(nuclei,masks, size:np.ndarray):
     """
     Crop a patch from a 3D image at a random start coordinate.
 
@@ -23,6 +23,8 @@ def crop_image_at_random(nuclei,masks, size):
     :param size: List of three integers specifying the size of the patch in each dimension.
     :return: Cropped patch as a 3D array.
     """
+    size=size.astype(int)
+
     # Calculate the maximum valid start coordinates to ensure the patch does not go out of bounds
     max_z = nuclei.shape[0] - size[0]
     max_y = nuclei.shape[1] - size[1]
@@ -135,7 +137,7 @@ def createTrainingData():
         nuclei,masks,nuclei_profile=prepareExample(nuclei,masks,scale)
         print(nuclei.shape)
 
-        nuclei_crop,masks_crop=crop_image_at_random(nuclei,masks, 3*np.array(patch_size))
+        nuclei_crop,masks_crop=crop_image_at_random(nuclei,masks, 1.25*np.array(patch_size))
         print(nuclei_crop.shape)
         print(np.max(masks))
 
@@ -155,7 +157,7 @@ def createTrainingData():
         flow=calculateFlow(modified_masks)
 
         #create N examples from this
-        for i in range(3*3*3*20):
+        for i in range(50):
             nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size))
             masks_patch=relabel_image(masks_patch).astype(np.int32)
 
@@ -186,6 +188,84 @@ def createTrainingData():
 
         return
 
+def createPreTrainingData():
+    nuclei_folder_list=os.listdir(struct_nuclei_images_path)
+    random.shuffle(nuclei_folder_list)
+    for nuclei_folder in nuclei_folder_list:
+        print(nuclei_folder)
+
+        masks_dir_path=os.path.join(struct_masks_path,nuclei_folder+'_filtered_fp_masks')
+        masks_MetaData=get_JSON(masks_dir_path)
+        if masks_MetaData=={}:
+            continue
+        
+        nuclei_dir_path=os.path.join(struct_nuclei_images_path,nuclei_folder)
+        nuclei_MetaData=get_JSON(nuclei_dir_path)
+
+        masks_file_name=masks_MetaData['masks_MetaData']['masks file']
+        masks=getImage(os.path.join(masks_dir_path,masks_file_name))
+        nuclei_file_name=nuclei_MetaData['nuclei_image_MetaData']['nuclei image file name']
+        nuclei=getImage(os.path.join(nuclei_dir_path,nuclei_file_name))
+        print(masks.shape)
+        print(nuclei.shape)
+        scale=np.array(nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum']).copy()
+        scale[0], scale[2] = scale[2], scale[0]
+        print(scale)
+        
+        nuclei,masks,nuclei_profile=prepareExample(nuclei,masks,scale)
+        print(nuclei.shape)
+
+        nuclei_crop,masks_crop=crop_image_at_random(nuclei,masks, 5*np.array(patch_size))
+        print(nuclei_crop.shape)
+        print(np.max(masks))
+
+        viewer = napari.Viewer(ndisplay=3)
+        viewer.add_image(nuclei_crop,name='nuclei_crop')
+        viewer.add_labels(masks_crop,name='masks_crop')
+        modified_masks=None
+        @viewer.bind_key('S')
+        def save_changes(viewer):
+            nonlocal modified_masks
+            # This function can be triggered by pressing 'S' and will save the current state of the mask.
+            modified_masks = viewer.layers['masks_crop'].data
+            print('Modifications saved.')
+        napari.run()
+        print(modified_masks.shape)
+        
+        flow=calculateFlow(modified_masks)
+
+        #create N examples from this
+        for i in range(20):
+            nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size))
+            masks_patch=relabel_image(masks_patch).astype(np.int32)
+
+            example_folder_path=create_unique_subfolder(pretrainData_path)
+            print(example_folder_path)
+
+            tiff.imwrite(os.path.join(example_folder_path,'nuclei_patch.tif'), nuclei_patch, dtype=np.float32)
+            tiff.imwrite(os.path.join(example_folder_path,'masks_patch.tif'), masks_patch, dtype=np.int32)
+            np.savez_compressed(os.path.join(example_folder_path,'flow_patch.npz'), flow_patch)
+            np.save(os.path.join(example_folder_path,'profile.npy'),nuclei_profile)
+
+            MetaData_Example={}
+            repo = git.Repo(gitPath,search_parent_directories=True)
+            sha = repo.head.object.hexsha
+            MetaData_Example['git hash']=sha
+            MetaData_Example['git repo']='newSegPipline'
+            MetaData_Example['Example version']=Example_version
+            MetaData_Example['nuc file']='nuclei_patch.tif'
+            MetaData_Example['masks file']='masks_patch.tif'
+            MetaData_Example['flow file']='flow_patch.npz'
+            MetaData_Example['profile file']='profile.npy'
+            MetaData_Example['XYZ size in mum']=nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum']
+            MetaData_Example['axes']=nuclei_MetaData['nuclei_image_MetaData']['axes']
+            MetaData_Example['is control']=nuclei_MetaData['nuclei_image_MetaData']['is control']
+            MetaData_Example['time in hpf']=nuclei_MetaData['nuclei_image_MetaData']['time in hpf']
+            MetaData_Example['experimentalist']=nuclei_MetaData['nuclei_image_MetaData']['experimentalist']
+            writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
+
+
+
 def generate_synthetic_3d_data(shape=(64, 32, 70), num_objects=5):
     data = np.zeros(shape, dtype=np.float32)
     labels = np.zeros(shape, dtype=np.int32)
@@ -215,5 +295,5 @@ def test():
     calculateFlow(labels)
 
 if __name__ == "__main__":
-    #test()
-    createTrainingData()
+    createPreTrainingData()
+    #createTrainingData()

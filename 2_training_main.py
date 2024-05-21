@@ -46,7 +46,7 @@ def save_model(elapsed_time,model,avg_train_loss,avg_val_loss):
 
     writeJSON(model_folder_path,'Model_MetaData',MetaData_model)
 
-def train_main():
+def pre_train_main():
     #collect Data
     nuc_img_list=[]
     mask_img_list=[]
@@ -86,7 +86,7 @@ def train_main():
         #plot_example(nuc_img,masks_img,flow)
 
     dataset = NucleiDataset(nuc_img_list, mask_img_list, flow_list, profil_list)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    #dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
@@ -176,4 +176,4 @@ def train_main():
             
 
 if __name__ == "__main__":
-    train_main() 
+    pre_train_main() 
