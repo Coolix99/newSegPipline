@@ -13,9 +13,7 @@ from IO import *
 from CPC.CPC_config import batch_size
 from CPC.UNet3D import UNet3D
 
-
-
-def plot_example(nuc_img,masks_img,flow):
+def plot_example(nuc_img, masks_img, flow):
     flow_vector_field = flow.transpose(1, 2, 3, 0)
     viewer = napari.Viewer()
     viewer.add_image(nuc_img, name='3D Nuc')
@@ -28,51 +26,51 @@ def plot_example(nuc_img,masks_img,flow):
     viewer.add_vectors(vector_data, name='3D Flow Field', edge_width=0.1, length=1, ndim=3)
     napari.run()
 
-def save_model(elapsed_time,model,avg_train_loss,avg_val_loss,name):
-    model_file_name='checkpoint_'+name+'.pth'
-    torch.save(model.state_dict(), os.path.join(model_folder_path,))
-    print("Checkpoint saved as model_checkpoint.pth")
-    print(f"Elapsed time: {elapsed_time:.2f} seconds")   
+def save_model(elapsed_time, model, avg_train_loss, avg_val_loss, name):
+    model_file_name = 'checkpoint_' + name + '.pth'
+    torch.save(model.state_dict(), os.path.join(model_folder_path, model_file_name))
+    print("Checkpoint saved as", model_file_name)
+    print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
-    MetaData_model={}
-    repo = git.Repo(gitPath,search_parent_directories=True)
+    MetaData_model = {}
+    repo = git.Repo(gitPath, search_parent_directories=True)
     sha = repo.head.object.hexsha
-    MetaData_model['git hash']=sha
-    MetaData_model['git repo']='newSegPipline'
-    MetaData_model['Training version']=Training_version
-    MetaData_model['model file']=model_file_name
-    MetaData_model['elapsed_time']=elapsed_time
-    MetaData_model['avg_train_loss']=avg_train_loss
-    MetaData_model['avg_val_loss']=avg_val_loss
+    MetaData_model['git hash'] = sha
+    MetaData_model['git repo'] = 'newSegPipline'
+    MetaData_model['Training version'] = Training_version
+    MetaData_model['model file'] = model_file_name
+    MetaData_model['elapsed_time'] = elapsed_time
+    MetaData_model['avg_train_loss'] = avg_train_loss
+    MetaData_model['avg_val_loss'] = avg_val_loss
 
-    writeJSON(model_folder_path,'Model_MetaData',MetaData_model)
+    writeJSON(model_folder_path, 'Model_MetaData', MetaData_model)
 
 def pre_train_main():
-    #collect Data
-    nuc_img_list=[]
-    mask_img_list=[]
-    flow_list=[]
-    profil_list=[]
-    example_folder_list=os.listdir(pretrainData_path)
+    # Collect Data
+    nuc_img_list = []
+    mask_img_list = []
+    flow_list = []
+    profil_list = []
+    example_folder_list = os.listdir(pretrainData_path)
     for example_folder in example_folder_list:
         print(example_folder)
-        example_folder_path=os.path.join(pretrainData_path,example_folder)
-        MetaData=get_JSON(example_folder_path)['Example_MetaData']
-        
-        nuc_file_name=MetaData['nuc file']
-        masks_file_name=MetaData['masks file']
-        flow_file_name=MetaData['flow file']
-        profil_file_name=MetaData['profile file']
+        example_folder_path = os.path.join(pretrainData_path, example_folder)
+        MetaData = get_JSON(example_folder_path)['Example_MetaData']
 
-        nuc_file_path=os.path.join(example_folder_path,nuc_file_name)
-        masks_file_path=os.path.join(example_folder_path,masks_file_name)
-        flow_file_path=os.path.join(example_folder_path,flow_file_name)
-        profil_file_path=os.path.join(example_folder_path,profil_file_name)
+        nuc_file_name = MetaData['nuc file']
+        masks_file_name = MetaData['masks file']
+        flow_file_name = MetaData['flow file']
+        profil_file_name = MetaData['profile file']
 
-        nuc_img=getImage(nuc_file_path)
-        masks_img=getImage(masks_file_path)
-        flow=np.load(flow_file_path)['arr_0']
-        profil=np.load(profil_file_path)
+        nuc_file_path = os.path.join(example_folder_path, nuc_file_name)
+        masks_file_path = os.path.join(example_folder_path, masks_file_name)
+        flow_file_path = os.path.join(example_folder_path, flow_file_name)
+        profil_file_path = os.path.join(example_folder_path, profil_file_name)
+
+        nuc_img = getImage(nuc_file_path)
+        masks_img = getImage(masks_file_path)
+        flow = np.load(flow_file_path)['arr_0']
+        profil = np.load(profil_file_path)
 
         print(nuc_img.shape)
         print(masks_img.shape)
@@ -80,14 +78,14 @@ def pre_train_main():
         print(profil)
 
         nuc_img_list.append(nuc_img)
-        mask_img_list.append(masks_img>0)
+        mask_img_list.append(masks_img > 0)
         flow_list.append(flow)
         profil_list.append(profil)
-        
-        #plot_example(nuc_img,masks_img,flow)
+
+        # plot_example(nuc_img,masks_img,flow)
 
     dataset = NucleiDataset(nuc_img_list, mask_img_list, flow_list, profil_list)
-    #dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    # dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
@@ -97,7 +95,7 @@ def pre_train_main():
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(device)   
+    print(device)
 
     # Initialize model
     n_channels = 1  # Adjust this if your input has more channels
@@ -118,10 +116,18 @@ def pre_train_main():
         # Average the loss over the masked regions
         return angle_loss.sum() / mask.sum()
 
+    def masked_cross_entropy_loss(logits, target, mask):
+        # Apply the mask
+        mask = mask.float()
+        loss = criterion_segmentation(logits, target.long())
+        masked_loss = loss * mask
+        # Average the loss over the masked regions
+        return masked_loss.sum() / mask.sum()
+
     # Optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
-     # Training and validation loop
+    # Training and validation loop
     num_epochs = 150
     best_val_loss = np.inf  # Initialize best validation loss for checkpointing
     start_time = time.time()
@@ -135,10 +141,13 @@ def pre_train_main():
             optimizer.zero_grad()
             seg_logits, pred_flows = model(images, prof)
             
-            loss_segmentation = criterion_segmentation(seg_logits, masks.long())
+            # Apply the mask for intensities > 0
+            mask = masks > 0
+
+            loss_segmentation = masked_cross_entropy_loss(seg_logits, masks, mask)
 
             # Compute flow field loss
-            loss_flow = angle_loss(pred_flows, flows, masks)
+            loss_flow = angle_loss(pred_flows, flows, mask)
             
             # Total loss
             loss = loss_segmentation + loss_flow
@@ -154,11 +163,14 @@ def pre_train_main():
                 images, masks, flows, prof = images.to(device), masks.to(device), flows.to(device), prof.to(device)
                 seg_logits, pred_flows = model(images, prof)
                 
+                # Apply the mask for intensities > 0
+                mask = masks > 0
+
                 # Compute segmentation loss
-                loss_segmentation = criterion_segmentation(seg_logits, masks.long())
+                loss_segmentation = masked_cross_entropy_loss(seg_logits, masks, mask)
                 
                 # Compute flow field loss
-                loss_flow = angle_loss(pred_flows, flows, masks)
+                loss_flow = angle_loss(pred_flows, flows, mask)
                 
                 # Total loss
                 loss = loss_segmentation + loss_flow
@@ -172,8 +184,7 @@ def pre_train_main():
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             elapsed_time = time.time() - start_time
-            save_model(elapsed_time,model,epoch,avg_train_loss,avg_val_loss,'pretraining')
-            
+            save_model(elapsed_time, model, epoch, avg_train_loss, avg_val_loss, 'pretraining')
 
 if __name__ == "__main__":
-    pre_train_main() 
+    pre_train_main()
