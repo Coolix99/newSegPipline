@@ -142,7 +142,7 @@ def pre_train_main():
             seg_logits, pred_flows = model(images, prof)
             
             # Apply the mask for intensities > 0
-            mask = masks > 0
+            mask = images > 0
 
             loss_segmentation = masked_cross_entropy_loss(seg_logits, masks, mask)
 
@@ -164,7 +164,7 @@ def pre_train_main():
                 seg_logits, pred_flows = model(images, prof)
                 
                 # Apply the mask for intensities > 0
-                mask = masks > 0
+                mask = images > 0
 
                 # Compute segmentation loss
                 loss_segmentation = masked_cross_entropy_loss(seg_logits, masks, mask)
