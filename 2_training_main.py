@@ -26,7 +26,7 @@ def plot_example(nuc_img, masks_img, flow):
     viewer.add_vectors(vector_data, name='3D Flow Field', edge_width=0.1, length=1, ndim=3)
     napari.run()
 
-def save_model(elapsed_time, model, avg_train_loss, avg_val_loss, name):
+def save_model(elapsed_time, model,epoch, avg_train_loss, avg_val_loss, name):
     model_file_name = 'checkpoint_' + name + '.pth'
     torch.save(model.state_dict(), os.path.join(model_folder_path, model_file_name))
     print("Checkpoint saved as", model_file_name)
@@ -42,6 +42,7 @@ def save_model(elapsed_time, model, avg_train_loss, avg_val_loss, name):
     MetaData_model['elapsed_time'] = elapsed_time
     MetaData_model['avg_train_loss'] = avg_train_loss
     MetaData_model['avg_val_loss'] = avg_val_loss
+    MetaData_model['epoch'] = epoch
 
     writeJSON(model_folder_path, 'Model_MetaData', MetaData_model)
 
