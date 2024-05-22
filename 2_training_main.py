@@ -10,7 +10,7 @@ import git
 from NucleiDataset import NucleiDataset
 from config import *
 from IO import *
-from CPC.CPC_config import batch_size
+
 from CPC.UNet3D import UNet3D
 
 def plot_example(nuc_img, masks_img, flow):
