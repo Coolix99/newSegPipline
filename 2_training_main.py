@@ -28,9 +28,10 @@ def plot_example(nuc_img, masks_img, flow):
 
 def save_model(elapsed_time, model,epoch, avg_train_loss, avg_val_loss, name):
     model_file_name = 'checkpoint_' + name + '.pth'
-    model_folder_name = 'checkpoint_' +name
-    make_path(os.path.join(model_folder_path,model_folder_name))
-    torch.save(model.state_dict(), os.path.join(model_folder_path,model_folder_name, model_file_name))
+    model_subfolder_name = 'checkpoint_' +name
+    model_subfolder_path=os.path.join(model_folder_path,model_subfolder_name)
+    make_path(model_subfolder_path)
+    torch.save(model.state_dict(), os.path.join(model_subfolder_path, model_file_name))
     print("Checkpoint saved as", model_file_name)
     print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
@@ -46,7 +47,7 @@ def save_model(elapsed_time, model,epoch, avg_train_loss, avg_val_loss, name):
     MetaData_model['avg_val_loss'] = avg_val_loss
     MetaData_model['epoch'] = epoch
 
-    writeJSON(model_folder_path, 'Model_MetaData', MetaData_model)
+    writeJSON(model_subfolder_path, 'Model_MetaData', MetaData_model)
 
 def pre_train_main():
     # Collect Data
