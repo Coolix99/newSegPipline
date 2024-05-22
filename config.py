@@ -16,9 +16,11 @@ if(machine=='Laptop'):
 
 if(machine=='BA'):
     structured_data_path=(r'/media/max_kotz/structured_data/{}').format("")
-    structured_data_path=(r'/home/max/Documents/02_Data/structured_data/{}').format("")
-    trainData_path=(r'/media/max_kotz/train_data/{}').format("")
-    model_folder_path=(r'/media/max_kotz/models/{}').format("")
+
+    nuclei_folders_path=(r'/media/max_kotz/seg_on_cluster/new_nuclei/{}').format("")
+    applyresult_folder_path=(r'/media/max_kotz/seg_on_cluster/applyresult/{}').format("")
+    model_folder_path=(r'/media/max_kotz/seg_on_cluster/models/{}').format("")
+    pretrainData_path=(r'/media/max_kotz/seg_on_cluster/pre_train_data/{}').format("")
     batch_size=4
     n_cores=6
 
