@@ -325,8 +325,8 @@ def apply_model_to_data():
         MetaData_apply['is control']=MetaData['nuclei_image_MetaData']['is control']
         MetaData_apply['time in hpf']=MetaData['nuclei_image_MetaData']['time in hpf']
         MetaData_apply['experimentalist']=MetaData['nuclei_image_MetaData']['experimentalist']
-        MetaData_apply['apply_MetaData']['input nuclei checksum']=MetaData['nuclei_image_MetaData']['nuclei checksum']
-        MetaData_apply['apply_MetaData']['input model checksum']==model_checksum
+        MetaData_apply['input nuclei checksum']=MetaData['nuclei_image_MetaData']['nuclei checksum']
+        MetaData_apply['input model checksum']=model_checksum
         writeJSON(res_folder_path,'apply_MetaData',MetaData_apply)
 
         return
