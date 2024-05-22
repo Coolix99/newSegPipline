@@ -24,7 +24,7 @@ if(machine=='Alpha'):
     structured_data_path=(r'/home/max/Documents/02_Data/structured_data/{}').format("")
     pretrainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/pre_train_data/pre_train_data/{}').format("")
     model_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/models/{}').format("")
-    batch_size=30
+    batch_size=20
 
 """path structure"""
 #local
