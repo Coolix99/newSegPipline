@@ -3,12 +3,13 @@ import torch
 import os
 from torch.utils.data import DataLoader, Dataset
 from simple_file_checksum import get_checksum
+import git
 
 from CPC.UNet3D import UNet3D
 from CPC.std_op import prepareData
 from CPC.CPC_config import patch_size
-from config import model_folder_path, pretrainData_path,batch_size,nuclei_folders_path,applyresult_folder_path,Apply_version
-from IO import getImage, get_JSON,make_path
+from config import model_folder_path, pretrainData_path,batch_size,nuclei_folders_path,applyresult_folder_path,Apply_version,gitPath
+from IO import getImage, get_JSON,make_path,save_compressed_array,writeJSON
 
 class ExampleDataset(Dataset):
     def __init__(self, image, profile, patch_size, overlap):
@@ -306,7 +307,28 @@ def apply_model_to_data():
         print(segmentation.shape)
         print(pred_flows.shape)
         
-        plot_result(dataset.image,segmentation,pred_flows)
+        #plot_result(dataset.image,segmentation,pred_flows)
+        save_compressed_array(os.path.join(res_folder_path,'segmentation.h5py'),segmentation,dataset.image > 0)
+        save_compressed_array(os.path.join(res_folder_path,'pred_flows.h5py'),segmentation,dataset.image > 0)
+
+
+        MetaData_apply={}
+        repo = git.Repo(gitPath,search_parent_directories=True)
+        sha = repo.head.object.hexsha
+        MetaData_apply['git hash']=sha
+        MetaData_apply['git repo']='newSegPipline'
+        MetaData_apply['apply version']=Apply_version
+        MetaData_apply['segmentation file']='segmentation.h5py'
+        MetaData_apply['pred_flows file']='pred_flows.h5py'
+        MetaData_apply['XYZ size in mum']=MetaData['nuclei_image_MetaData']['XYZ size in mum']
+        MetaData_apply['axes']=MetaData['nuclei_image_MetaData']['axes']
+        MetaData_apply['is control']=MetaData['nuclei_image_MetaData']['is control']
+        MetaData_apply['time in hpf']=MetaData['nuclei_image_MetaData']['time in hpf']
+        MetaData_apply['experimentalist']=MetaData['nuclei_image_MetaData']['experimentalist']
+        MetaData_apply['apply_MetaData']['input nuclei checksum']=MetaData['nuclei_image_MetaData']['nuclei checksum']
+        MetaData_apply['apply_MetaData']['input model checksum']==model_checksum
+        writeJSON(res_folder_path,'apply_MetaData',MetaData_apply)
+
         return
 if __name__ == "__main__":
     #test_examples()
