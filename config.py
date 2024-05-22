@@ -7,6 +7,7 @@ if(machine=='Home'):
     structured_data_path=(r'E:\02_Data\structured_data\{}').format("")
     trainData_path=(r'E:\02_Data\train_data\{}').format("")
     pretrainData_path=(r'E:\02_Data\pre_train_data\{}').format("")
+    batch_size=4
     
 if(machine=='Laptop'):
     pass
@@ -17,11 +18,13 @@ if(machine=='BA'):
     structured_data_path=(r'/home/max/Documents/02_Data/structured_data/{}').format("")
     trainData_path=(r'/media/max_kotz/train_data/{}').format("")
     model_folder_path=(r'/media/max_kotz/models/{}').format("")
+    batch_size=4
 
 if(machine=='Alpha'):
     structured_data_path=(r'/home/max/Documents/02_Data/structured_data/{}').format("")
     pretrainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/pre_train_data/pre_train_data/{}').format("")
     model_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/pre_train_data/pre_train_data/models/{}').format("")
+    batch_size=10
 
 """path structure"""
 #local

@@ -10,7 +10,6 @@ import tifffile as tiff
 from config import *
 from IO import *
 
-from CPC.CPC_config import patch_size
 from CPC.std_op import prepareExample
 from CPC.dynamics import masks_to_flows_gpu_3d
 
