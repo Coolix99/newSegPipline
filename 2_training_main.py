@@ -28,7 +28,9 @@ def plot_example(nuc_img, masks_img, flow):
 
 def save_model(elapsed_time, model,epoch, avg_train_loss, avg_val_loss, name):
     model_file_name = 'checkpoint_' + name + '.pth'
-    torch.save(model.state_dict(), os.path.join(model_folder_path, model_file_name))
+    model_folder_name = 'checkpoint_' +name
+    make_path(os.path.join(model_folder_path,model_folder_name))
+    torch.save(model.state_dict(), os.path.join(model_folder_path,model_folder_name, model_file_name))
     print("Checkpoint saved as", model_file_name)
     print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
