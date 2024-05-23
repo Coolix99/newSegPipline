@@ -157,8 +157,8 @@ def createTrainingData():
         flow=calculateFlow(modified_masks)
 
         #create N examples from this
-        for i in range(50):
-            nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size))
+        for i in range(30):
+            nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size),d=3)
             masks_patch=relabel_image(masks_patch).astype(np.int32)
 
             example_folder_path=create_unique_subfolder(trainData_path)
@@ -295,5 +295,5 @@ def test():
     calculateFlow(labels)
 
 if __name__ == "__main__":
-    createPreTrainingData()
-    #createTrainingData()
+    #createPreTrainingData()
+    createTrainingData()
