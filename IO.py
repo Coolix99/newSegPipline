@@ -14,8 +14,11 @@ def save_compressed_array(filename, array, mask):
     # Ensure the mask is boolean
     mask = mask.astype(bool)
     
-    # Extract non-zero elements using the mask
-    non_zero_elements = array[mask]
+    # Expand the mask to match the array dimensions
+    expanded_mask = np.broadcast_to(mask, array.shape)
+    
+    # Extract non-zero elements using the expanded mask
+    non_zero_elements = array[expanded_mask]
     
     # Save the mask, non-zero elements, and original shape to a file
     with h5py.File(filename, 'w') as f:
@@ -30,13 +33,15 @@ def load_compressed_array(filename):
         non_zero_elements = f['non_zero_elements'][:]
         shape = f.attrs['shape']
 
+    # Expand the mask to the original shape
+    expanded_mask = np.broadcast_to(mask, shape)
+    
     # Create an empty array of the original shape
-    print(shape)
     array = np.zeros(shape, dtype=non_zero_elements.dtype)
 
-    # Reconstruct the original array using the mask and the non-zero elements
-    array[mask] = non_zero_elements
-
+    # Reconstruct the original array using the expanded mask and the non-zero elements
+    array[expanded_mask] = non_zero_elements
+    
     return array
 
 def getImage(file):
