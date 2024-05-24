@@ -31,6 +31,7 @@ def load_compressed_array(filename):
         shape = f.attrs['shape']
 
     # Create an empty array of the original shape
+    print(shape)
     array = np.zeros(shape, dtype=non_zero_elements.dtype)
 
     # Reconstruct the original array using the mask and the non-zero elements

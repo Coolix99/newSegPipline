@@ -9,7 +9,7 @@ from CPC.UNet3D import UNet3D
 from CPC.std_op import prepareData
 from CPC.CPC_config import patch_size
 from config import model_folder_path, pretrainData_path,batch_size,nuclei_folders_path,applyresult_folder_path,Apply_version,gitPath
-from IO import getImage, get_JSON,make_path,save_compressed_array,writeJSON
+from IO import getImage, get_JSON,make_path,save_compressed_array,writeJSON,load_compressed_array
 
 class ExampleDataset(Dataset):
     def __init__(self, image, profile, patch_size, overlap):
@@ -313,7 +313,7 @@ def apply_model_to_data():
         
         #plot_result(dataset.image,segmentation,pred_flows)
         save_compressed_array(os.path.join(res_folder_path,'segmentation.h5py'),segmentation,dataset.image > 0)
-        save_compressed_array(os.path.join(res_folder_path,'pred_flows.h5py'),segmentation,dataset.image > 0)
+        save_compressed_array(os.path.join(res_folder_path,'pred_flows.h5py'),pred_flows,dataset.image > 0)
 
 
         MetaData_apply={}
@@ -334,7 +334,49 @@ def apply_model_to_data():
         writeJSON(res_folder_path,'apply_MetaData',MetaData_apply)
 
         return
+
+def load_and_plot():
+    
+    nuclei_folder_list = os.listdir(nuclei_folders_path)
+    for nuclei_folder in nuclei_folder_list:
+        print(nuclei_folder)
+        nuclei_folder_path = os.path.join(nuclei_folders_path, nuclei_folder)
+        MetaData=get_JSON(nuclei_folder_path)
+        if not 'nuclei_image_MetaData' in MetaData:
+            continue
+        
+        res_folder_path = os.path.join(applyresult_folder_path, nuclei_folder)
+        MetaData_apply=get_JSON(res_folder_path)
+        if not 'apply_MetaData' in MetaData_apply:
+            continue
+        
+
+        print(MetaData)
+        
+        nuc_file_name = MetaData['nuclei_image_MetaData']['nuclei image file name']
+        nuc_file_path = os.path.join(nuclei_folder_path, nuc_file_name)
+        nuc_img = getImage(nuc_file_path)
+        scale=np.array(MetaData['nuclei_image_MetaData']['XYZ size in mum']).copy()
+        scale[0], scale[2] = scale[2], scale[0]
+        
+        print(nuc_img.shape)
+        print(scale)
+        
+       
+        nuclei,profile=prepareData(nuc_img,scale)
+       
+        segmentation=load_compressed_array(os.path.join(res_folder_path,'segmentation.h5py'))
+        pred_flows=load_compressed_array(os.path.join(res_folder_path,'pred_flows.h5py'))
+        print(segmentation.shape)
+        print(pred_flows.shape)
+        
+        plot_result(nuclei,segmentation,pred_flows)
+    
+
+        return
+
+
 if __name__ == "__main__":
     #test_examples()
     apply_model_to_data()
-
+    load_and_plot()
