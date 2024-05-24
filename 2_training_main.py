@@ -338,5 +338,5 @@ def train_main():
 
 
 if __name__ == "__main__":
-    pre_train_main()
+    #pre_train_main()
     train_main()
