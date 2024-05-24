@@ -331,9 +331,11 @@ def apply_model_to_data():
         MetaData_apply['experimentalist']=MetaData['nuclei_image_MetaData']['experimentalist']
         MetaData_apply['input nuclei checksum']=MetaData['nuclei_image_MetaData']['nuclei checksum']
         MetaData_apply['input model checksum']=model_checksum
+        MetaData_apply['output seg checksum']=get_checksum(os.path.join(res_folder_path,'segmentation.h5py'), algorithm="SHA1")
+        MetaData_apply['output flow checksum']=get_checksum(os.path.join(res_folder_path,'pred_flows.h5py'), algorithm="SHA1")
         writeJSON(res_folder_path,'apply_MetaData',MetaData_apply)
 
-        return
+        
 
 def load_and_plot():
     
@@ -379,4 +381,4 @@ def load_and_plot():
 if __name__ == "__main__":
     #test_examples()
     apply_model_to_data()
-    load_and_plot()
+    #load_and_plot()

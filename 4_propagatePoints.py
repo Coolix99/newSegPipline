@@ -12,7 +12,8 @@ def calculate_prop_points(flow_file,mask_file):
     mask=load_compressed_array(mask_file)
     
     """Follow Flow"""
-    p0=np.where(mask>0)
+    p0=np.array(np.where(mask>0))
+    print(p0)
     print(p0.shape)
 
     print('start follow flow')
@@ -23,7 +24,31 @@ def calculate_prop_points(flow_file,mask_file):
     return p,p0
 
 def evalStatus(prop_dir_path,apply_dir_path):
-    return None
+    MetaData_apply=get_JSON(apply_dir_path)
+    print(MetaData_apply)
+    if not 'apply_MetaData' in MetaData_apply:
+        print('no MetaData_apply')
+        return False
+
+    MetaData_prop=get_JSON(prop_dir_path)
+
+    if not 'prop_MetaData' in MetaData_prop:
+        print('no MetaData_prop -> do it')
+        return MetaData_apply
+
+    if not MetaData_prop['prop_MetaData']['prop version']==Prop_version:
+        print('not current version')
+        return MetaData_apply  
+
+    if not MetaData_prop['prop_MetaData']['input seg checksum']==MetaData_apply['apply_MetaData']['output seg checksum']:
+        print('differnt prop')
+        return MetaData_apply
+    
+    if not MetaData_prop['prop_MetaData']['input flow checksum']==MetaData_apply['apply_MetaData']['output flow checksum']:
+        print('differnt flow')
+        return MetaData_apply
+
+    return False
 
 def propagatePoints():
     apply_folder_list=os.listdir(applyresult_folder_path)
@@ -38,14 +63,14 @@ def propagatePoints():
         if not isinstance(PastMetaData,dict):
             continue
 
-        if not make_path(prop_dir_path):
-            continue
+        # if not make_path(prop_dir_path):
+        #     continue
         
         #writeJSONDict(prop_dir_path,PastMetaData) #overwrites everything
 
         MetaData_apply=PastMetaData["apply_MetaData"]
-        flow_file=os.path.join(applyresult_folder_path,MetaData_apply['pred_flows file'])
-        mask_file=os.path.join(applyresult_folder_path,MetaData_apply['segmentation file'])
+        flow_file=os.path.join(apply_dir_path,MetaData_apply['pred_flows file'])
+        mask_file=os.path.join(apply_dir_path,MetaData_apply['segmentation file'])
 
         #actual calculation
         print('start calculate')
