@@ -4,8 +4,6 @@ from simple_file_checksum import get_checksum
 from IO import *
 from CPC import dynamics
 
-
-
 def calculate_prop_points(flow_file,mask_file):
     """INPUT"""
     flow=load_compressed_array(flow_file)
@@ -13,11 +11,11 @@ def calculate_prop_points(flow_file,mask_file):
     
     """Follow Flow"""
     p0=np.array(np.where(mask>0))
-    print(p0)
     print(p0.shape)
-
+    pstart=p0.copy().astype(np.float32)
+    flow[:,mask]=0
     print('start follow flow')
-    p=dynamics.steps3D(p0.copy(),flow * mask / 5.,niter=50)
+    p=dynamics.steps3D(pstart,flow,niter=50,rate=0.2)
     print('end follow flow')
     print(p.shape)
    
@@ -63,8 +61,8 @@ def propagatePoints():
         if not isinstance(PastMetaData,dict):
             continue
 
-        # if not make_path(prop_dir_path):
-        #     continue
+        if not make_path(prop_dir_path):
+            continue
         
         #writeJSONDict(prop_dir_path,PastMetaData) #overwrites everything
 
@@ -74,26 +72,31 @@ def propagatePoints():
 
         #actual calculation
         print('start calculate')
-        prop_points=calculate_prop_points(flow_file,mask_file)
+        p,p0=calculate_prop_points(flow_file,mask_file)
         
-        points_file=os.path.join(prop_dir_path,apply_folder)
-        saveArr(points_file)
-        tifffile.imwrite(masks_file,masks.astype(np.uint16))
+        p0_file=os.path.join(prop_dir_path,'start_pos')
+        saveArr(p0,p0_file)
+        p_file=os.path.join(prop_dir_path,'end_pos')
+        saveArr(p,p_file)
         
-        MetaData_masks={}
-        check_masks=get_checksum(masks_file, algorithm="SHA1")
+        MetaData_prop={}
         repo = git.Repo(gitPath,search_parent_directories=True)
         sha = repo.head.object.hexsha
-        MetaData_masks['git hash']=sha
-        MetaData_masks['git repo']='cp_mask_images'
-        MetaData_masks['masks version']=masks_version
-        MetaData_masks['masks file']=flowprop_folder+'_mask.tif'
-
-        MetaData_masks['input flow checksum']=PastMetaData['flow_prop_MetaData']['output flow checksum']
-        MetaData_masks['input prop checksum']=PastMetaData['flow_prop_MetaData']['output prop checksum']
-        MetaData_masks['output masks checksum']=check_masks
-
-        writeJSON(masks_dir_path,'masks_MetaData',MetaData_masks)
+        MetaData_prop['git hash']=sha
+        MetaData_prop['git repo']='newSegPipline'
+        MetaData_prop['apply version']=Apply_version
+        MetaData_prop['start file']='start_pos'
+        MetaData_prop['end file']='end_pos'
+        MetaData_prop['XYZ size in mum']=MetaData_apply['XYZ size in mum']
+        MetaData_prop['axes']=MetaData_apply['axes']
+        MetaData_prop['is control']=MetaData_apply['is control']
+        MetaData_prop['time in hpf']=MetaData_apply['time in hpf']
+        MetaData_prop['experimentalist']=MetaData_apply['experimentalist']
+        MetaData_prop['input seg checksum']=MetaData_apply['output seg checksum']
+        MetaData_prop['input flow checksum']=MetaData_apply['output flow checksum']
+        MetaData_prop['output start checksum']=get_checksum(p0_file+'.npy', algorithm="SHA1")
+        MetaData_prop['output end checksum']=get_checksum(p_file+'.npy', algorithm="SHA1")
+        writeJSON(prop_dir_path,'prop_MetaData',MetaData_prop)
 
 if __name__ == '__main__':
     propagatePoints()

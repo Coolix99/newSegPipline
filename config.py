@@ -7,6 +7,9 @@ if(machine=='Home'):
     structured_data_path=(r'E:\02_Data\structured_data\{}').format("")
     trainData_path=(r'E:\02_Data\train_data\{}').format("")
     pretrainData_path=(r'E:\02_Data\pre_train_data\{}').format("")
+    applyresult_folder_path=(r'\\vs-grp07.zih.tu-dresden.de\max_kotz\seg_on_cluster\applyresult\{}').format("")
+    applyresult_folder_path=(r'E:\02_Data\applyresult\{}').format("")
+    propresult_folder_path=(r'\\vs-grp07.zih.tu-dresden.de\max_kotz\seg_on_cluster\propresult\{}').format("")
     batch_size=4
     n_cores=3
     

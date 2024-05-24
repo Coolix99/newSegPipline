@@ -441,8 +441,8 @@ def steps2D_interp(p, dP, niter, device=None):
         return p
 
 
-@njit("(float32[:, :], float32[:, :, :, :], int32)", nogil=True)
-def steps3D(p, dP, niter):
+@njit("(float32[:, :], float32[:, :, :, :], int32,float32)", nogil=True)
+def steps3D(p, dP, niter,rate):
     """ Run dynamics of pixels to recover masks in 3D.
 
     Euler integration of dynamics dP for niter steps.
@@ -459,9 +459,10 @@ def steps3D(p, dP, niter):
     for t in range(niter):
         for j in range(p.shape[0]):
             p0, p1, p2 = int(p[j, 0]), int(p[j, 1]), int(p[j, 2])
-            p[j, 0] = min(shape[0] - 1, max(0, p[j, 0] + dP[0, p0, p1, p2]))
-            p[j, 1] = min(shape[1] - 1, max(0, p[j, 1] + dP[1, p0, p1, p2]))
-            p[j, 2] = min(shape[2] - 1, max(0, p[j, 2] + dP[2, p0, p1, p2]))
+            p[j, 0] = min(shape[0] - 1, max(0, p[j, 0] + dP[0, p0, p1, p2]*rate))
+            p[j, 1] = min(shape[1] - 1, max(0, p[j, 1] + dP[1, p0, p1, p2]*rate))
+            p[j, 2] = min(shape[2] - 1, max(0, p[j, 2] + dP[2, p0, p1, p2]*rate))
+            return p
     return p
 
 
