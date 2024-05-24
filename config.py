@@ -21,6 +21,7 @@ if(machine=='BA'):
     applyresult_folder_path=(r'/media/max_kotz/seg_on_cluster/applyresult/{}').format("")
     model_folder_path=(r'/media/max_kotz/seg_on_cluster/models/{}').format("")
     pretrainData_path=(r'/media/max_kotz/seg_on_cluster/pre_train_data/{}').format("")
+    trainData_path=(r'/media/max_kotz/seg_on_cluster/train_data\{}').format("")
     batch_size=4
     n_cores=6
 
