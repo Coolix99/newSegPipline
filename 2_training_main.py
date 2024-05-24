@@ -199,7 +199,7 @@ def train_main():
     example_folder_list = os.listdir(trainData_path)
     for example_folder in example_folder_list:
         print(example_folder)
-        example_folder_path = os.path.join(pretrainData_path, example_folder)
+        example_folder_path = os.path.join(trainData_path, example_folder)
         MetaData = get_JSON(example_folder_path)['Example_MetaData']
 
         nuc_file_name = MetaData['nuc file']
