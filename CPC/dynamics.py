@@ -442,15 +442,14 @@ def steps2D_interp(p, dP, niter, device=None):
 
 
 @njit("(float32[:,:,:,:],float32[:,:,:,:], int32[:,:], int32)", nogil=True)
-def steps3D(p, dP, inds, niter):
+def steps3D(p, dP, niter):
     """ Run dynamics of pixels to recover masks in 3D.
 
     Euler integration of dynamics dP for niter steps.
 
     Args:
-        p (np.ndarray): Pixel locations [axis x Lz x Ly x Lx] (start at initial meshgrid).
+        p (np.ndarray): Pixel locations [Npx x axis] 
         dP (np.ndarray): Flows [axis x Lz x Ly x Lx].
-        inds (np.ndarray): Non-zero pixels to run dynamics on [npixels x 3].
         niter (int): Number of iterations of dynamics to run.
 
     Returns:
@@ -459,14 +458,11 @@ def steps3D(p, dP, inds, niter):
     shape = p.shape[1:]
     for t in range(niter):
         #pi = p.astype(np.int32)
-        for j in range(inds.shape[0]):
-            z = inds[j, 0]
-            y = inds[j, 1]
-            x = inds[j, 2]
-            p0, p1, p2 = int(p[0, z, y, x]), int(p[1, z, y, x]), int(p[2, z, y, x])
-            p[0, z, y, x] = min(shape[0] - 1, max(0, p[0, z, y, x] + dP[0, p0, p1, p2]))
-            p[1, z, y, x] = min(shape[1] - 1, max(0, p[1, z, y, x] + dP[1, p0, p1, p2]))
-            p[2, z, y, x] = min(shape[2] - 1, max(0, p[2, z, y, x] + dP[2, p0, p1, p2]))
+        for j in range(p.shape[0]):
+            p0, p1, p2 = int(p[j, 0]), int(p[j, 1]), int(p[j, 2])
+            p[j, 0] = min(shape[0] - 1, max(0, p[j, 0] + dP[0, p0, p1, p2]))
+            p[j, 1] = min(shape[1] - 1, max(0, p[j, 1] + dP[1, p0, p1, p2]))
+            p[j, 2] = min(shape[2] - 1, max(0, p[j, 2] + dP[2, p0, p1, p2]))
     return p
 
 

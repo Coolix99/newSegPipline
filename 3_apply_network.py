@@ -267,9 +267,13 @@ def apply_model_to_data():
         print(nuclei_folder)
         nuclei_folder_path = os.path.join(nuclei_folders_path, nuclei_folder)
         res_folder_path = os.path.join(applyresult_folder_path, nuclei_folder)
-        make_path(res_folder_path)
-
+        
         MetaData = evalStatus_apply(nuclei_folder_path,res_folder_path,model_checksum)
+        if not isinstance(MetaData,dict):
+            continue
+
+        if not make_path(res_folder_path):
+            continue
         print(MetaData)
         
         nuc_file_name = MetaData['nuclei_image_MetaData']['nuclei image file name']

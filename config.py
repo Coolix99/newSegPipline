@@ -19,6 +19,7 @@ if(machine=='BA'):
 
     nuclei_folders_path=(r'/media/max_kotz/seg_on_cluster/new_nuclei/{}').format("")
     applyresult_folder_path=(r'/media/max_kotz/seg_on_cluster/applyresult/{}').format("")
+    propresult_folder_path=(r'/media/max_kotz/seg_on_cluster/propresult/{}').format("")
     model_folder_path=(r'/media/max_kotz/seg_on_cluster/models/{}').format("")
     pretrainData_path=(r'/media/max_kotz/seg_on_cluster/pre_train_data/{}').format("")
     trainData_path=(r'/media/max_kotz/seg_on_cluster/train_data/{}').format("")
