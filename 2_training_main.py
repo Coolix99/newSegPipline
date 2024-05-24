@@ -190,5 +190,153 @@ def pre_train_main():
             elapsed_time = time.time() - start_time
             save_model(elapsed_time, model, epoch, avg_train_loss, avg_val_loss, 'pretraining')
 
+def train_main():
+    # Collect Data
+    nuc_img_list = []
+    mask_img_list = []
+    flow_list = []
+    profil_list = []
+    example_folder_list = os.listdir(trainData_path)
+    for example_folder in example_folder_list:
+        print(example_folder)
+        example_folder_path = os.path.join(pretrainData_path, example_folder)
+        MetaData = get_JSON(example_folder_path)['Example_MetaData']
+
+        nuc_file_name = MetaData['nuc file']
+        masks_file_name = MetaData['masks file']
+        flow_file_name = MetaData['flow file']
+        profil_file_name = MetaData['profile file']
+
+        nuc_file_path = os.path.join(example_folder_path, nuc_file_name)
+        masks_file_path = os.path.join(example_folder_path, masks_file_name)
+        flow_file_path = os.path.join(example_folder_path, flow_file_name)
+        profil_file_path = os.path.join(example_folder_path, profil_file_name)
+
+        nuc_img = getImage(nuc_file_path)
+        masks_img = getImage(masks_file_path)
+        flow = np.load(flow_file_path)['arr_0']
+        profil = np.load(profil_file_path)
+
+        print(nuc_img.shape)
+        print(masks_img.shape)
+        print(flow.shape)
+        print(profil)
+
+        nuc_img_list.append(nuc_img)
+        mask_img_list.append(masks_img > 0)
+        flow_list.append(flow)
+        profil_list.append(profil)
+
+        # plot_example(nuc_img,masks_img,flow)
+
+    dataset = NucleiDataset(nuc_img_list, mask_img_list, flow_list, profil_list)
+    # dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True,num_workers=n_cores)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True,num_workers=n_cores)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
+
+    # Initialize model
+    n_channels = 1  # Adjust this if your input has more channels
+    context_size = 8
+    model = UNet3D(n_channels, context_size).to(device)
+    model_file_name = 'checkpoint_' + 'pretraining' + '.pth'
+    model_subfolder_name = 'checkpoint_' +'pretraining'
+    model_subfolder_path=os.path.join(model_folder_path,model_subfolder_name)
+    model_path=os.path.join(model_subfolder_path, model_file_name)
+    model.load_state_dict(torch.load(model_path, map_location=device))
+
+    # Define loss functions
+    class_weights = torch.tensor([1.0, 1.0], dtype=torch.float32).to(device)  # Adjust class weights as needed
+    criterion_segmentation = nn.CrossEntropyLoss(weight=class_weights)
+
+    def angle_loss(pred_flow, true_flow, mask):
+        # Calculate cosine similarity
+        cosine_similarity = torch.sum(pred_flow * true_flow, dim=1)
+        # Angle loss
+        angle_loss = 1 - cosine_similarity
+        # Mask the loss to only include regions where mask is true
+        angle_loss = angle_loss * mask
+        # Average the loss over the masked regions
+        return angle_loss.sum() / mask.sum()
+
+    def masked_cross_entropy_loss(logits, target, mask):
+        # Apply the mask
+        mask = mask.float()
+        loss = criterion_segmentation(logits, target.long())
+        masked_loss = loss * mask
+        # Average the loss over the masked regions
+        return masked_loss.sum() / mask.sum()
+
+    # Optimizer
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
+
+    # Training and validation loop
+    num_epochs = 150
+    best_val_loss = np.inf  # Initialize best validation loss for checkpointing
+    start_time = time.time()
+
+    for epoch in range(num_epochs):
+        model.train()
+        running_loss = 0.0
+
+        for images, masks, flows, prof in train_loader:
+            images, masks, flows, prof = images.to(device), masks.to(device), flows.to(device), prof.to(device)
+            optimizer.zero_grad()
+            seg_logits, pred_flows = model(images, prof)
+            
+            # Apply the mask for intensities > 0
+            mask = images > 0
+
+            loss_segmentation = masked_cross_entropy_loss(seg_logits, masks, mask)
+
+            # Compute flow field loss
+            loss_flow = angle_loss(pred_flows, flows, mask)
+            
+            # Total loss
+            loss = loss_segmentation + loss_flow
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
+
+        # Validation phase
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for images, masks, flows, prof in val_loader:
+                images, masks, flows, prof = images.to(device), masks.to(device), flows.to(device), prof.to(device)
+                seg_logits, pred_flows = model(images, prof)
+                
+                # Apply the mask for intensities > 0
+                mask = images > 0
+
+                # Compute segmentation loss
+                loss_segmentation = masked_cross_entropy_loss(seg_logits, masks, mask)
+                
+                # Compute flow field loss
+                loss_flow = angle_loss(pred_flows, flows, mask)
+                
+                # Total loss
+                loss = loss_segmentation + loss_flow
+                val_loss += loss.item()
+
+        avg_train_loss = running_loss / len(train_loader)
+        avg_val_loss = val_loss / len(val_loader)
+        print(f"Epoch {epoch+1}/{num_epochs}, Training Loss: {avg_train_loss}, Validation Loss: {avg_val_loss}")
+
+        # Checkpoint model if validation loss improved
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            elapsed_time = time.time() - start_time
+            save_model(elapsed_time, model, epoch, avg_train_loss, avg_val_loss, 'training')
+
+
 if __name__ == "__main__":
     pre_train_main()
+    train_main()
