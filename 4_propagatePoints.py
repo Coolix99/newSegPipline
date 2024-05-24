@@ -12,12 +12,15 @@ def calculate_prop_points(flow_file,mask_file):
     mask=load_compressed_array(mask_file)
     
     """Follow Flow"""
+    p0=np.where(mask>0)
+    print(p0.shape)
+
     print('start follow flow')
-    p=dynamics.steps3D(p,flow * mask / 5.,niter=50)
+    p=dynamics.steps3D(p0.copy(),flow * mask / 5.,niter=50)
     print('end follow flow')
     print(p.shape)
    
-    return p
+    return p,p0
 
 def evalStatus(prop_dir_path,apply_dir_path):
     return None
@@ -48,7 +51,8 @@ def propagatePoints():
         print('start calculate')
         prop_points=calculate_prop_points(flow_file,mask_file)
         
-        masks_file=os.path.join(masks_dir_path,flowprop_folder+'_mask.tif')
+        points_file=os.path.join(prop_dir_path,apply_folder)
+        saveArr(points_file)
         tifffile.imwrite(masks_file,masks.astype(np.uint16))
         
         MetaData_masks={}

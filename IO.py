@@ -110,6 +110,8 @@ def writeJSONlist(directory,keys,values,name=None):
 def make_path(newpath):
     if not os.path.exists(newpath):
         os.makedirs(newpath)
+        return True
+    return False
 
 def exists_path(path):
     return os.path.exists(path)
