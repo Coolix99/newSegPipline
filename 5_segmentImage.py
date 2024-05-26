@@ -153,6 +153,13 @@ def segmentImage(p0_file,p_file):
     print(labels.shape)
     
 
+    for label_id in range(1, num_features + 1):  # Label 0 is background
+        mask = labels == label_id
+        # Perform operations for each label's mask
+        print(f"Processing label: {label_id}")
+        # Example: print the number of pixels for the current label
+        print(f"Number of pixels in label {label_id}: {np.sum(mask)}")
+
 def evalStatus(prop_dir_path,seg_dir_path):
     MetaData_prop=get_JSON(prop_dir_path)
     print(MetaData_prop)
