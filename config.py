@@ -9,7 +9,8 @@ if(machine=='Home'):
     pretrainData_path=(r'E:\02_Data\pre_train_data\{}').format("")
     applyresult_folder_path=(r'\\vs-grp07.zih.tu-dresden.de\max_kotz\seg_on_cluster\applyresult\{}').format("")
     applyresult_folder_path=(r'E:\02_Data\applyresult\{}').format("")
-    propresult_folder_path=(r'\\vs-grp07.zih.tu-dresden.de\max_kotz\seg_on_cluster\propresult\{}').format("")
+    propresult_folder_path=(r'E:\02_Data\propresult\{}').format("")
+    segresult_folder_path=(r'\\vs-grp07.zih.tu-dresden.de\max_kotz\seg_on_cluster\segmentationresult\{}').format("")
     batch_size=4
     n_cores=3
     
@@ -54,3 +55,4 @@ Example_version=1
 Training_version=1
 Apply_version=1
 Prop_version=1
+Seg_version=1
