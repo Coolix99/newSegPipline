@@ -185,7 +185,7 @@ def do_masks():
         MetaData_seg['input start checksum']=MetaData_prop['output start checksum']
         MetaData_seg['input end checksum']=MetaData_prop['output end checksum']
         MetaData_seg['output seg checksum']=get_checksum(res_file, algorithm="SHA1")
-        writeJSON(seg_dir_path,'seg_MetaData',MetaData_prop)
+        writeJSON(seg_dir_path,'seg_MetaData',MetaData_seg)
 
 if __name__ == '__main__':
     do_masks()

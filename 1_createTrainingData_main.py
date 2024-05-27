@@ -264,34 +264,117 @@ def createPreTrainingData():
             MetaData_Example['experimentalist']=nuclei_MetaData['nuclei_image_MetaData']['experimentalist']
             writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
 
-def generate_synthetic_3d_data(shape=(64, 32, 70), num_objects=5):
-    data = np.zeros(shape, dtype=np.float32)
-    labels = np.zeros(shape, dtype=np.int32)
-    
-    # Create grid of coordinates
-    x = np.arange(shape[0])
-    y = np.arange(shape[1])
-    z = np.arange(shape[2])
-    xv, yv, zv = np.meshgrid(x, y, z, indexing='ij')
-    
-    for i in range(1, num_objects + 1):
-        # Randomly choose the center of the object
-        center = np.random.randint(10, min(shape) - 10, size=3)
-        # Randomly choose the radius/size of the object
-        radius = np.random.randint(5, 10)
-        
-        # Create a spherical object using broadcasting
-        mask = (xv - center[0])**2 + (yv - center[1])**2 + (zv - center[2])**2 < radius**2
-        data[mask] = 1.0
-        labels[mask] = i
-    
-    return data, labels
+def selectROI(image,labels):
+    viewer = napari.Viewer()
 
-def test():
-    data, labels=generate_synthetic_3d_data()
-   
-    calculateFlow(labels)
+    # Add the image and labels layers
+    viewer.add_image(image, name='3D Image')
+    viewer.add_labels(labels, name='Labels')
+
+    # Add a points layer
+    points_layer = viewer.add_points(
+        ndim=3,
+        name='Points',
+        size=5,
+        face_color='red',
+        edge_color='white',
+    )
+    points=None
+    # Define a callback to capture the points when the viewer is closed
+    @viewer.bind_key('q')
+    def on_close(event):
+        nonlocal points
+        points = points_layer.data
+        viewer.close()
+
+    # Start the Napari event loop
+    napari.run()
+    return points
+
+def createTrainingDataFromSeg():
+    seg_folder_list=os.listdir(segresult_folder_path)
+    random.shuffle(seg_folder_list)
+    for seg_folder in seg_folder_list:
+        print(seg_folder)
+
+        seg_dir_path=os.path.join(segresult_folder_path,seg_folder)
+        seg_MetaData=get_JSON(seg_dir_path)
+        if seg_MetaData=={}:
+            continue
+        
+        nuclei_dir_path = os.path.join(nuclei_folders_path, seg_folder)
+        nuclei_MetaData=get_JSON(nuclei_dir_path)
+
+        seg_file_name=seg_MetaData['seg_MetaData']['seg file']
+        seg=getImage(os.path.join(seg_dir_path,seg_file_name))
+        nuclei_file_name=nuclei_MetaData['nuclei_image_MetaData']['nuclei image file name']
+        nuclei=getImage(os.path.join(nuclei_dir_path,nuclei_file_name))
+        print(seg.shape)
+        print(nuclei.shape)
+        scale=np.array(nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum']).copy()
+        scale[0], scale[2] = scale[2], scale[0]
+        print(scale)
+        
+        nuclei,masks,nuclei_profile=prepareExample(nuclei,seg,scale)
+        print(nuclei.shape)
+
+        res=selectROI(nuclei,masks)
+        print(res)
+        return
+
+        nuclei_crop,masks_crop=crop_image_at_random(nuclei,masks, 1.25*np.array(patch_size))
+        print(nuclei_crop.shape)
+        print(np.max(masks))
+
+        viewer = napari.Viewer(ndisplay=3)
+        viewer.add_image(nuclei_crop,name='nuclei_crop')
+        viewer.add_labels(masks_crop,name='masks_crop')
+        modified_masks=None
+        @viewer.bind_key('S')
+        def save_changes(viewer):
+            nonlocal modified_masks
+            # This function can be triggered by pressing 'S' and will save the current state of the mask.
+            modified_masks = viewer.layers['masks_crop'].data
+            print('Modifications saved.')
+        napari.run()
+        print(modified_masks.shape)
+        
+        flow=calculateFlow(modified_masks)
+
+        #create N examples from this
+        for i in range(30):
+            nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size),d=3)
+            masks_patch=relabel_image(masks_patch).astype(np.int32)
+
+            example_folder_path=create_unique_subfolder(trainData_path)
+            print(example_folder_path)
+
+            tiff.imwrite(os.path.join(example_folder_path,'nuclei_patch.tif'), nuclei_patch, dtype=np.float32)
+            tiff.imwrite(os.path.join(example_folder_path,'masks_patch.tif'), masks_patch, dtype=np.int32)
+            np.savez_compressed(os.path.join(example_folder_path,'flow_patch.npz'), flow_patch)
+            np.save(os.path.join(example_folder_path,'profile.npy'),nuclei_profile)
+
+            MetaData_Example={}
+            repo = git.Repo(gitPath,search_parent_directories=True)
+            sha = repo.head.object.hexsha
+            MetaData_Example['git hash']=sha
+            MetaData_Example['git repo']='newSegPipline'
+            MetaData_Example['Example version']=Example_version
+            MetaData_Example['nuc file']='nuclei_patch.tif'
+            MetaData_Example['masks file']='masks_patch.tif'
+            MetaData_Example['flow file']='flow_patch.npz'
+            MetaData_Example['profile file']='profile.npy'
+            MetaData_Example['XYZ size in mum']=nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum']
+            MetaData_Example['axes']=nuclei_MetaData['nuclei_image_MetaData']['axes']
+            MetaData_Example['is control']=nuclei_MetaData['nuclei_image_MetaData']['is control']
+            MetaData_Example['time in hpf']=nuclei_MetaData['nuclei_image_MetaData']['time in hpf']
+            MetaData_Example['experimentalist']=nuclei_MetaData['nuclei_image_MetaData']['experimentalist']
+            writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
+
+        return
+
 
 if __name__ == "__main__":
     #createPreTrainingData()
-    createTrainingData()
+    #createTrainingData()
+    createTrainingDataFromSeg()
