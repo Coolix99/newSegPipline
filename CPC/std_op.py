@@ -94,3 +94,9 @@ def prepareExample(orig_nuclei,orig_masks,orig_scale):
     prepared_nuclei,nuclei_profile=prepareData(orig_nuclei,orig_scale)
     prepared_masks=std_scaling(orig_masks,orig_scale,False).get().astype(int)
     return prepared_nuclei,prepared_masks,nuclei_profile
+
+def std_reverse_scaling(image,scale,interpolate=False):
+    factor=target_scaling/scale
+    # Use pyclesperanto's resample method to rescale the image
+    rescaled_image = cle.resample(image, factor_x=factor[2], factor_y=factor[1], factor_z=factor[0],linear_interpolation=interpolate)
+    return rescaled_image

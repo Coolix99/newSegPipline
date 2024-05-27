@@ -10,7 +10,8 @@ if(machine=='Home'):
     applyresult_folder_path=(r'\\vs-grp07.zih.tu-dresden.de\max_kotz\seg_on_cluster\applyresult\{}').format("")
     applyresult_folder_path=(r'E:\02_Data\applyresult\{}').format("")
     propresult_folder_path=(r'E:\02_Data\propresult\{}').format("")
-    segresult_folder_path=(r'\\vs-grp07.zih.tu-dresden.de\max_kotz\seg_on_cluster\segmentationresult\{}').format("")
+    segresult_folder_path=(r'E:\02_Data\segmentationresult\{}').format("")
+    nuclei_folders_path=(r'E:\02_Data\structured_data\images\RAW_images_and_splitted\raw_images_nuclei\{}').format("")
     batch_size=4
     n_cores=3
     
