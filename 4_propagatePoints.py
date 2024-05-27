@@ -13,7 +13,7 @@ def calculate_prop_points(flow_file,mask_file):
     p0=np.array(np.where(mask>0))
     print(p0.shape)
     pstart=p0.copy().astype(np.float32)
-    flow[:,mask]=0
+    #flow[:,~mask]=0
     print('start follow flow')
     p=dynamics.steps3D(pstart,flow,niter=50,rate=0.2)
     print('end follow flow')
@@ -74,6 +74,8 @@ def propagatePoints():
         print('start calculate')
         p,p0=calculate_prop_points(flow_file,mask_file)
         
+
+        
         p0_file=os.path.join(prop_dir_path,'start_pos')
         saveArr(p0,p0_file)
         p_file=os.path.join(prop_dir_path,'end_pos')
@@ -84,7 +86,7 @@ def propagatePoints():
         sha = repo.head.object.hexsha
         MetaData_prop['git hash']=sha
         MetaData_prop['git repo']='newSegPipline'
-        MetaData_prop['apply version']=Apply_version
+        MetaData_prop['prop version']=Prop_version
         MetaData_prop['start file']='start_pos'
         MetaData_prop['end file']='end_pos'
         MetaData_prop['XYZ size in mum']=MetaData_apply['XYZ size in mum']

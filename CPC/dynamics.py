@@ -448,21 +448,21 @@ def steps3D(p, dP, niter,rate):
     Euler integration of dynamics dP for niter steps.
 
     Args:
-        p (np.ndarray): Pixel locations [Npx x 3] 
+        p (np.ndarray): Pixel locations [3 x Npx] 
         dP (np.ndarray): Flows [3 x Lz x Ly x Lx].
         niter (int): Number of iterations of dynamics to run.
 
     Returns:
         np.ndarray: Final locations of each pixel after dynamics.
     """
+
     shape = dP.shape[1:]  # Shape of the 3D space (Lz, Ly, Lx)
     for t in range(niter):
-        for j in range(p.shape[0]):
-            p0, p1, p2 = int(p[j, 0]), int(p[j, 1]), int(p[j, 2])
-            p[j, 0] = min(shape[0] - 1, max(0, p[j, 0] + dP[0, p0, p1, p2]*rate))
-            p[j, 1] = min(shape[1] - 1, max(0, p[j, 1] + dP[1, p0, p1, p2]*rate))
-            p[j, 2] = min(shape[2] - 1, max(0, p[j, 2] + dP[2, p0, p1, p2]*rate))
-            return p
+        for j in range(p.shape[1]):
+            p0, p1, p2 = int(p[0, j]), int(p[1, j]), int(p[2, j])
+            p[0, j] = min(shape[0] - 1, max(0, p[0, j] + dP[0, p0, p1, p2]*rate))
+            p[1, j] = min(shape[1] - 1, max(0, p[1, j] + dP[1, p0, p1, p2]*rate))
+            p[2, j] = min(shape[2] - 1, max(0, p[2, j] + dP[2, p0, p1, p2]*rate))
     return p
 
 

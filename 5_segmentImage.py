@@ -4,6 +4,8 @@ from typing import List
 import skimage as ski
 from simple_file_checksum import get_checksum
 from scipy.ndimage import label
+from sklearn.cluster import DBSCAN
+import napari
 
 from IO import *
 
@@ -141,24 +143,86 @@ from IO import *
 #     #showImage(im_original,labels_down)
 #     return labels_down
 
-def segmentImage(p0_file,p_file):
-    p0=loadArr(p0_file)
-    p=loadArr(p_file)
 
-    big_result_shape=np.max(p0,axis=1)+1
-    start_mask=np.zeros(big_result_shape,dtype=bool)
-    start_mask[p0[0,:],p0[1,:],p0[2,:]]=1
+def plot_clusters(labels, p):
+    """
+    Plots the given points and their corresponding labels using napari.
     
+    Args:
+    - labels (numpy.ndarray): The labels array with cluster ids.
+    - p (numpy.ndarray): The points array (3, N) where N is the number of points.
+    """
+    # Ensure p is in the correct shape
+    assert p.shape[0] == 3, "Points array should have shape (3, N)"
+
+    # Create a napari viewer
+    viewer = napari.Viewer(ndisplay=3)
+    
+    # Add points layer
+    viewer.add_points(p.T, size=1, face_color='red', name='points')
+
+    # Add labels layer
+    viewer.add_labels(labels, name='labels')
+    
+    # Start the napari event loop
+    napari.run()
+
+def segmentImage(p0_file, p_file):
+    p0 = loadArr(p0_file)
+    p = loadArr(p_file)
+
+    # Select a subset based on (zmax, ymax, xmax)
+    subset_mask = (p0[0, :] < 500) & (p0[1, :] < 500) & (p0[2, :] < 500)
+    p0 = p0[:, subset_mask]
+    p = p[:, subset_mask]
+    print(p)
+    print(p0)
+    return
+    print(p0.shape)
+
+    big_result_shape = np.max(p0, axis=1) + 1
+    start_mask = np.zeros(big_result_shape, dtype=bool)
+    start_mask[p0[0, :], p0[1, :], p0[2, :]] = 1
+
     labels, num_features = label(start_mask)
-    print(labels.shape)
-    
+    print(f"Label shape: {labels.shape}")
 
-    for label_id in range(1, num_features + 1):  # Label 0 is background
-        mask = labels == label_id
-        # Perform operations for each label's mask
+    # Create a mapping of p0 indices to their label ids
+    p0_indices = np.ravel_multi_index(p0, big_result_shape)
+    label_map = labels.ravel()[p0_indices]
+    
+    # Initialize a counter for unique cluster labels
+    overall_cluster_id = 1
+
+    # Process each label
+    unique_labels = np.unique(label_map[label_map > 0])
+    for label_id in unique_labels:
         print(f"Processing label: {label_id}")
-        # Example: print the number of pixels for the current label
-        print(f"Number of pixels in label {label_id}: {np.sum(mask)}")
+
+        # Create a boolean mask for points in p0 that have the current label_id
+        mask = (label_map == label_id)
+        filtered_p0 = p0[:, mask]
+        selected_p = p[:, mask]
+
+        # print(f"Filtered P0 shape: {filtered_p0.shape}")
+        # print(f"Selected P shape: {selected_p.shape}")
+
+        # Apply DBSCAN to the selected points
+        db = DBSCAN(eps=3, min_samples=10).fit(selected_p.T)
+        cluster_labels = db.labels_
+
+        # Update labels array with refined clusters
+        cluster_ids = np.unique(cluster_labels[cluster_labels >= 0])
+        for cid in cluster_ids:
+            cluster_mask = (cluster_labels == cid)
+            cluster_points = filtered_p0[:, cluster_mask]
+           
+            labels[cluster_points[0,:],cluster_points[1,:],cluster_points[2,:]] = overall_cluster_id
+            overall_cluster_id += 1
+
+    plot_clusters(labels,p)
+
+    return labels
 
 def evalStatus(prop_dir_path,seg_dir_path):
     MetaData_prop=get_JSON(prop_dir_path)
