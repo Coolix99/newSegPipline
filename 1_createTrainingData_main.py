@@ -291,6 +291,29 @@ def selectROI(image,labels):
     napari.run()
     return points
 
+def crop_around_center(nuclei,masks,center,target_shape):
+    center = np.round(center).astype(int)
+    target_shape = np.round(target_shape).astype(int)
+    half_shape = (target_shape / 2).astype(int)
+    
+    # Calculate start and end indices for cropping
+    start = np.maximum(center - half_shape, 0)
+    end = np.minimum(center + half_shape, np.array(nuclei.shape))
+    
+    # Adjust start and end if the target_shape is larger than the array dimensions
+    for i in range(3):
+        if end[i] - start[i] < target_shape[i]:
+            if start[i] == 0:
+                end[i] = min(target_shape[i], nuclei.shape[i])
+            if end[i] == nuclei.shape[i]:
+                start[i] = max(nuclei.shape[i] - target_shape[i], 0)
+    
+    # Create slices for each dimension
+    slices = tuple(slice(start[dim], end[dim]) for dim in range(3))
+    
+    # Return the cropped array
+    return nuclei[slices],masks[slices]
+
 def createTrainingDataFromSeg():
     seg_folder_list=os.listdir(segresult_folder_path)
     random.shuffle(seg_folder_list)
@@ -319,59 +342,61 @@ def createTrainingDataFromSeg():
         print(nuclei.shape)
 
         res=selectROI(nuclei,masks)
-        print(res)
-        return
+        print(res.shape)
+        for i in range(res.shape[0]):
+            center=res[i,:]
+            target_shape=1.25*np.array(patch_size)
+    
 
-        nuclei_crop,masks_crop=crop_image_at_random(nuclei,masks, 1.25*np.array(patch_size))
-        print(nuclei_crop.shape)
-        print(np.max(masks))
+            nuclei_crop,masks_crop=crop_around_center(nuclei,masks,center,target_shape)
+            print(nuclei_crop.shape)
+            print(np.max(masks))
 
-        viewer = napari.Viewer(ndisplay=3)
-        viewer.add_image(nuclei_crop,name='nuclei_crop')
-        viewer.add_labels(masks_crop,name='masks_crop')
-        modified_masks=None
-        @viewer.bind_key('S')
-        def save_changes(viewer):
-            nonlocal modified_masks
-            # This function can be triggered by pressing 'S' and will save the current state of the mask.
-            modified_masks = viewer.layers['masks_crop'].data
-            print('Modifications saved.')
-        napari.run()
-        print(modified_masks.shape)
-        
-        flow=calculateFlow(modified_masks)
+            viewer = napari.Viewer(ndisplay=3)
+            viewer.add_image(nuclei_crop,name='nuclei_crop')
+            viewer.add_labels(masks_crop,name='masks_crop')
+            modified_masks=None
+            @viewer.bind_key('S')
+            def save_changes(viewer):
+                nonlocal modified_masks
+                # This function can be triggered by pressing 'S' and will save the current state of the mask.
+                modified_masks = viewer.layers['masks_crop'].data
+                print('Modifications saved.')
+            napari.run()
+            print(modified_masks.shape)
+            
+            flow=calculateFlow(modified_masks)
+            
+            #create N examples from this
+            for i in range(30):
+                nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size),d=3)
+                masks_patch=relabel_image(masks_patch).astype(np.int32)
 
-        #create N examples from this
-        for i in range(30):
-            nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,modified_masks,flow, np.array(patch_size),d=3)
-            masks_patch=relabel_image(masks_patch).astype(np.int32)
+                example_folder_path=create_unique_subfolder(trainData_path)
+                print(example_folder_path)
 
-            example_folder_path=create_unique_subfolder(trainData_path)
-            print(example_folder_path)
+                tiff.imwrite(os.path.join(example_folder_path,'nuclei_patch.tif'), nuclei_patch, dtype=np.float32)
+                tiff.imwrite(os.path.join(example_folder_path,'masks_patch.tif'), masks_patch, dtype=np.int32)
+                np.savez_compressed(os.path.join(example_folder_path,'flow_patch.npz'), flow_patch)
+                np.save(os.path.join(example_folder_path,'profile.npy'),nuclei_profile)
 
-            tiff.imwrite(os.path.join(example_folder_path,'nuclei_patch.tif'), nuclei_patch, dtype=np.float32)
-            tiff.imwrite(os.path.join(example_folder_path,'masks_patch.tif'), masks_patch, dtype=np.int32)
-            np.savez_compressed(os.path.join(example_folder_path,'flow_patch.npz'), flow_patch)
-            np.save(os.path.join(example_folder_path,'profile.npy'),nuclei_profile)
+                MetaData_Example={}
+                repo = git.Repo(gitPath,search_parent_directories=True)
+                sha = repo.head.object.hexsha
+                MetaData_Example['git hash']=sha
+                MetaData_Example['git repo']='newSegPipline'
+                MetaData_Example['Example version']=Example_version
+                MetaData_Example['nuc file']='nuclei_patch.tif'
+                MetaData_Example['masks file']='masks_patch.tif'
+                MetaData_Example['flow file']='flow_patch.npz'
+                MetaData_Example['profile file']='profile.npy'
+                MetaData_Example['XYZ size in mum']=nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum']
+                MetaData_Example['axes']=nuclei_MetaData['nuclei_image_MetaData']['axes']
+                MetaData_Example['is control']=nuclei_MetaData['nuclei_image_MetaData']['is control']
+                MetaData_Example['time in hpf']=nuclei_MetaData['nuclei_image_MetaData']['time in hpf']
+                MetaData_Example['experimentalist']=nuclei_MetaData['nuclei_image_MetaData']['experimentalist']
+                writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
 
-            MetaData_Example={}
-            repo = git.Repo(gitPath,search_parent_directories=True)
-            sha = repo.head.object.hexsha
-            MetaData_Example['git hash']=sha
-            MetaData_Example['git repo']='newSegPipline'
-            MetaData_Example['Example version']=Example_version
-            MetaData_Example['nuc file']='nuclei_patch.tif'
-            MetaData_Example['masks file']='masks_patch.tif'
-            MetaData_Example['flow file']='flow_patch.npz'
-            MetaData_Example['profile file']='profile.npy'
-            MetaData_Example['XYZ size in mum']=nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum']
-            MetaData_Example['axes']=nuclei_MetaData['nuclei_image_MetaData']['axes']
-            MetaData_Example['is control']=nuclei_MetaData['nuclei_image_MetaData']['is control']
-            MetaData_Example['time in hpf']=nuclei_MetaData['nuclei_image_MetaData']['time in hpf']
-            MetaData_Example['experimentalist']=nuclei_MetaData['nuclei_image_MetaData']['experimentalist']
-            writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
-
-        return
 
 
 if __name__ == "__main__":

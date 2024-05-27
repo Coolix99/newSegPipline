@@ -375,5 +375,5 @@ def load_and_plot():
 
 if __name__ == "__main__":
     #test_examples()
-    apply_model_to_data()
-    #load_and_plot()
+    #apply_model_to_data()
+    load_and_plot()
