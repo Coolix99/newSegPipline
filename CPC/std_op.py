@@ -81,7 +81,6 @@ def normalize_image_intensities(image):
     
     return normalized_image
 
-
 def prepareData(orig_nuclei,orig_scale):
     
     nuclei=std_scaling(orig_nuclei,orig_scale,True)

@@ -76,7 +76,6 @@ class ApplyDataset(Dataset):
         profile = np.ascontiguousarray(self.profile)
         return torch.from_numpy(combined_patch).float(), torch.from_numpy(profile).float(), position
 
-
 def load_model(name, device):
     model_file_name = 'checkpoint_' + name + '.pth'
     model_subfolder_name = 'checkpoint_' +name
@@ -230,7 +229,6 @@ def plot_result(nuc_img,segmentation,pred_flows):
 
     napari.run()
 
-
 def evalStatus_apply(nuclei_folder_path,res_folder_path,model_checksum):
     MetaData_nuclei=get_JSON(nuclei_folder_path)
     if not 'nuclei_image_MetaData' in MetaData_nuclei:
@@ -335,8 +333,6 @@ def apply_model_to_data():
         MetaData_apply['output flow checksum']=get_checksum(os.path.join(res_folder_path,'pred_flows.h5py'), algorithm="SHA1")
         writeJSON(res_folder_path,'apply_MetaData',MetaData_apply)
 
-        
-
 def load_and_plot():
     
     nuclei_folder_list = os.listdir(nuclei_folders_path)
@@ -376,7 +372,6 @@ def load_and_plot():
     
 
         return
-
 
 if __name__ == "__main__":
     #test_examples()

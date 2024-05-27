@@ -264,8 +264,6 @@ def createPreTrainingData():
             MetaData_Example['experimentalist']=nuclei_MetaData['nuclei_image_MetaData']['experimentalist']
             writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
 
-
-
 def generate_synthetic_3d_data(shape=(64, 32, 70), num_objects=5):
     data = np.zeros(shape, dtype=np.float32)
     labels = np.zeros(shape, dtype=np.int32)

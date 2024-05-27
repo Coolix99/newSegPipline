@@ -1,5 +1,4 @@
 import git
-from typing import List
 from simple_file_checksum import get_checksum
 from scipy.ndimage import label
 from sklearn.cluster import DBSCAN
@@ -9,7 +8,6 @@ import tifffile
 
 from IO import *
 from CPC.std_op import std_reverse_scaling
-
 
 def plot_clusters(labels, p):
     """
@@ -188,7 +186,6 @@ def do_masks():
         MetaData_seg['input end checksum']=MetaData_prop['output end checksum']
         MetaData_seg['output seg checksum']=get_checksum(res_file, algorithm="SHA1")
         writeJSON(seg_dir_path,'seg_MetaData',MetaData_prop)
-
 
 if __name__ == '__main__':
     do_masks()

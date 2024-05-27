@@ -3,22 +3,8 @@ import torch
 import numpy as np
 
 from numba import njit
-#import cv2
-#import fastremap
-
-
-
-#from . import utils, metrics, transforms
-
 import torch
-from torch import optim, nn
 import torch.nn.functional as F
-#from . import resnet_torch
-
-TORCH_ENABLED = True
-torch_GPU = torch.device("cuda")
-torch_CPU = torch.device("cpu")
-
 
 def _extend_centers_gpu_3d(neighbors, meds, isneighbor, shape, n_iter=200,
                         device=torch.device("cuda")):
