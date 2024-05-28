@@ -167,7 +167,7 @@ def do_masks():
 
         #plot_compare(nuc_img,seg_result)
 
-        res_file=os.path.join(seg_dir_path,'seg_result.tiff')
+        res_file=os.path.join(seg_dir_path,prop_folder+'_seg.tiff')
         tifffile.imwrite(res_file, seg_result)
        
         MetaData_seg={}
@@ -176,7 +176,7 @@ def do_masks():
         MetaData_seg['git hash']=sha
         MetaData_seg['git repo']='newSegPipline'
         MetaData_seg['seg version']=Seg_version
-        MetaData_seg['seg file']='seg_result.tiff'
+        MetaData_seg['seg file']=prop_folder+'_seg.tiff'
         MetaData_seg['XYZ size in mum']=MetaData_nuc['nuclei_image_MetaData']['XYZ size in mum']
         MetaData_seg['axes']=MetaData_nuc['nuclei_image_MetaData']['axes']
         MetaData_seg['is control']=MetaData_nuc['nuclei_image_MetaData']['is control']

@@ -3,6 +3,7 @@ import os
 from config_machine import *
 
 if(machine=='Home'):
+    model_folder_path=None
     structured_data_path=(r'\\vs-grp07.zih.tu-dresden.de\max_kotz\structured_data\{}').format("")
     structured_data_path=(r'E:\02_Data\structured_data\{}').format("")
     trainData_path=(r'E:\02_Data\train_data\{}').format("")
