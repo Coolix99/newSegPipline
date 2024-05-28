@@ -34,7 +34,7 @@ if(machine=='BA'):
 if(machine=='Alpha'):
     structured_data_path=(r'/home/max/Documents/02_Data/structured_data/{}').format("")
     pretrainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/pre_train_data/pre_train_data/{}').format("")
-    trainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/train_data/train_data/{}').format("")
+    trainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/train_data/{}').format("")
     model_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/models/{}').format("")
     batch_size=20
     n_cores=4
