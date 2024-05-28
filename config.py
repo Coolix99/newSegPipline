@@ -36,6 +36,12 @@ if(machine=='Alpha'):
     pretrainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/pre_train_data/pre_train_data/{}').format("")
     trainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/train_data/{}').format("")
     model_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/models/{}').format("")
+
+    applyresult_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/applyresult')
+    propresult_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/propresult')
+    segresult_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/segmentationresult')
+    nuclei_folders_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/new_nuclei/new_nuclei')
+
     batch_size=20
     n_cores=4
 
