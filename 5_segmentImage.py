@@ -182,6 +182,7 @@ def do_masks():
         MetaData_seg['is control']=MetaData_nuc['nuclei_image_MetaData']['is control']
         MetaData_seg['time in hpf']=MetaData_nuc['nuclei_image_MetaData']['time in hpf']
         MetaData_seg['experimentalist']=MetaData_nuc['nuclei_image_MetaData']['experimentalist']
+        MetaData_seg['genotype']=MetaData_nuc['nuclei_image_MetaData']['genotype']
         MetaData_seg['input start checksum']=MetaData_prop['output start checksum']
         MetaData_seg['input end checksum']=MetaData_prop['output end checksum']
         MetaData_seg['output seg checksum']=get_checksum(res_file, algorithm="SHA1")
