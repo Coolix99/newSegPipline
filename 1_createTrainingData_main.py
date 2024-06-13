@@ -397,9 +397,84 @@ def createTrainingDataFromSeg():
                 MetaData_Example['experimentalist']=nuclei_MetaData['nuclei_image_MetaData']['experimentalist']
                 writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
 
+def createTrainingDataCrop():
+    seg_folder_list=os.listdir(segresult_folder_path)
+    random.shuffle(seg_folder_list)
+    for seg_folder in seg_folder_list:
+        print(seg_folder)
 
+        seg_dir_path=os.path.join(segresult_folder_path,seg_folder)
+        seg_MetaData=get_JSON(seg_dir_path)
+        if seg_MetaData=={}:
+            continue
+        
+        nuclei_dir_path = os.path.join(nuclei_folders_path, seg_folder)
+        nuclei_MetaData=get_JSON(nuclei_dir_path)
+
+        seg_file_name=seg_MetaData['seg_MetaData']['seg file']
+        seg=getImage(os.path.join(seg_dir_path,seg_file_name))
+        nuclei_file_name=nuclei_MetaData['nuclei_image_MetaData']['nuclei image file name']
+        nuclei=getImage(os.path.join(nuclei_dir_path,nuclei_file_name))
+        print(seg.shape)
+        print(nuclei.shape)
+        scale=np.array(nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum']).copy()
+        scale[0], scale[2] = scale[2], scale[0]
+        print(scale)
+        
+        nuclei,masks,nuclei_profile=prepareExample(nuclei,seg,scale)
+        print(nuclei.shape)
+
+        res=selectROI(nuclei,masks)
+        if res is None:
+            continue
+        for i in range(res.shape[0]):
+            center=res[i,:]
+            target_shape=1.25*np.array(patch_size)
+    
+
+            nuclei_crop,masks_crop=crop_around_center(nuclei,masks,center,target_shape)
+            masks_crop=relabel_image(masks_crop).astype(np.int32)
+            print(nuclei_crop.shape)
+            print(np.max(masks_crop))
+            print(masks_crop.shape)
+            
+            viewer = napari.Viewer(ndisplay=3)
+            viewer.add_image(nuclei_crop,name='nuclei_crop')
+            viewer.add_labels(masks_crop,name='masks_crop')
+            napari.run()
+            
+           
+            
+
+            example_folder_path=create_unique_subfolder(crop_trainData_path)
+            print(example_folder_path)
+
+            tiff.imwrite(os.path.join(example_folder_path,'nuclei_crop.tif'), nuclei_crop, dtype=np.float32)
+            tiff.imwrite(os.path.join(example_folder_path,'masks_crop.tif'), masks_crop, dtype=np.int32)
+            np.save(os.path.join(example_folder_path,'profile.npy'),nuclei_profile)
+
+            MetaData_Example={}
+            repo = git.Repo(gitPath,search_parent_directories=True)
+            sha = repo.head.object.hexsha
+            MetaData_Example['highest mask number']=str(np.max(masks_crop))
+            MetaData_Example['git hash']=sha
+            MetaData_Example['git repo']='newSegPipline'
+            MetaData_Example['Example version']=Example_version
+            MetaData_Example['nuc file']='nuclei_crop.tif'
+            MetaData_Example['masks file']='masks_crop.tif'
+            MetaData_Example['profile file']='profile.npy'
+            MetaData_Example['XYZ size in mum']=nuclei_MetaData['nuclei_image_MetaData']['XYZ size in mum']
+            MetaData_Example['axes']=nuclei_MetaData['nuclei_image_MetaData']['axes']
+            MetaData_Example['is control']=nuclei_MetaData['nuclei_image_MetaData']['is control']
+            MetaData_Example['time in hpf']=nuclei_MetaData['nuclei_image_MetaData']['time in hpf']
+            MetaData_Example['experimentalist']=nuclei_MetaData['nuclei_image_MetaData']['experimentalist']
+            writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
+    
 
 if __name__ == "__main__":
     #createPreTrainingData()
     #createTrainingData()
-    createTrainingDataFromSeg()
+    #createTrainingDataFromSeg()
+
+    createTrainingDataCrop() #save crop, you can work after that on it
+        #todo: load such crop and 

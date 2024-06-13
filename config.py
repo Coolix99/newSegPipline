@@ -23,12 +23,14 @@ if(machine=='Laptop'):
 if(machine=='BA'):
     structured_data_path=(r'/media/max_kotz/structured_data/{}').format("")
 
-    nuclei_folders_path=(r'/media/max_kotz/seg_on_cluster/new_nuclei/{}').format("")
+    nuclei_folders_path=(r'/media/max_kotz/structured_data/images/RAW_images_and_splitted/raw_images_nuclei').format("")
     applyresult_folder_path=(r'/media/max_kotz/seg_on_cluster/applyresult/{}').format("")
     propresult_folder_path=(r'/media/max_kotz/seg_on_cluster/propresult/{}').format("")
     model_folder_path=(r'/media/max_kotz/seg_on_cluster/models/{}').format("")
     pretrainData_path=(r'/media/max_kotz/seg_on_cluster/pre_train_data/{}').format("")
     trainData_path=(r'/media/max_kotz/seg_on_cluster/train_data/{}').format("")
+    crop_trainData_path=(r'/media/max_kotz/share_summer/annotation_nuclei/{}').format("")
+    segresult_folder_path=(r'/media/max_kotz/structured_data/images/newNucleiSegmentation/segmentationresult')
     batch_size=4
     n_cores=6
 
@@ -37,6 +39,7 @@ if(machine=='Alpha'):
     pretrainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/pre_train_data/pre_train_data/{}').format("")
     trainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/train_data/{}').format("")
     model_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/models/{}').format("")
+    
 
     applyresult_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/applyresult')
     propresult_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/propresult')
