@@ -468,6 +468,7 @@ def createTrainingDataCrop():
             MetaData_Example['is control']=nuclei_MetaData['nuclei_image_MetaData']['is control']
             MetaData_Example['time in hpf']=nuclei_MetaData['nuclei_image_MetaData']['time in hpf']
             MetaData_Example['experimentalist']=nuclei_MetaData['nuclei_image_MetaData']['experimentalist']
+            MetaData_Example['genotype']=nuclei_MetaData['nuclei_image_MetaData']['genotype']
             writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
     
 
