@@ -399,6 +399,11 @@ def createTrainingDataFromSeg():
 
 def createTrainingDataCrop():
     seg_folder_list=os.listdir(segresult_folder_path)
+    seg_folder_list=['20240501_mAG-zGem_H2a-mcherry_144hpf_LM_1_nuclei',
+    '20240211_BRE-laux_GFP_H2A-mCh_126hpf_LM_5_nuclei',
+    '20231118_BRE-laux_GFP_H2A-mCh_120hpf_LM_1-1_nuclei',
+    '20240316_BRE-laux_GFP_H2A-mCh_54hpf_LM_8_nuclei',
+    '20231115_BRE-laux_GFP_H2A-mCh_48hpf_LM_4-2_nuclei']
     random.shuffle(seg_folder_list)
     for seg_folder in seg_folder_list:
         print(seg_folder)
