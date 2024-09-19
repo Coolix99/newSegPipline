@@ -194,15 +194,15 @@ def createPreTrainingData():
     for nuclei_folder in nuclei_folder_list:
         print(nuclei_folder)
 
-        masks_dir_path=os.path.join(struct_masks_path,nuclei_folder+'_filtered_fp_masks')
+        masks_dir_path=os.path.join(struct_masks_path,nuclei_folder)
         masks_MetaData=get_JSON(masks_dir_path)
         if masks_MetaData=={}:
             continue
         
         nuclei_dir_path=os.path.join(struct_nuclei_images_path,nuclei_folder)
         nuclei_MetaData=get_JSON(nuclei_dir_path)
-
-        masks_file_name=masks_MetaData['masks_MetaData']['masks file']
+        
+        masks_file_name=masks_MetaData['seg_MetaData']['seg file']
         masks=getImage(os.path.join(masks_dir_path,masks_file_name))
         nuclei_file_name=nuclei_MetaData['nuclei_image_MetaData']['nuclei image file name']
         nuclei=getImage(os.path.join(nuclei_dir_path,nuclei_file_name))
@@ -215,7 +215,7 @@ def createPreTrainingData():
         nuclei,masks,nuclei_profile=prepareExample(nuclei,masks,scale)
         print(nuclei.shape)
 
-        nuclei_crop,masks_crop=crop_image_at_random(nuclei,masks, 5*np.array(patch_size))
+        nuclei_crop,masks_crop=crop_image_at_random(nuclei,masks, 4*np.array(patch_size))
         print(nuclei_crop.shape)
         print(np.max(masks))
 
@@ -478,9 +478,9 @@ def createTrainingDataCrop():
     
 
 if __name__ == "__main__":
-    #createPreTrainingData()
+    createPreTrainingData()
     #createTrainingData()
     #createTrainingDataFromSeg()
 
-    createTrainingDataCrop() #save crop, you can work after that on it
+    #createTrainingDataCrop() #save crop, you can work after that on it
         #todo: load such crop and 

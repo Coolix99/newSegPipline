@@ -36,15 +36,15 @@ if(machine=='BA'):
 
 if(machine=='Alpha'):
     structured_data_path=(r'/home/max/Documents/02_Data/structured_data/{}').format("")
-    pretrainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/pre_train_data/pre_train_data/{}').format("")
-    trainData_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/train_data/{}').format("")
-    model_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/models/{}').format("")
+    pretrainData_path=(r'/data/horse/ws/s0095413-nuclei_segmentation/data/pre_train_data/{}').format("")
+    trainData_path=(r'/data/horse/ws/s0095413-nuclei_segmentation/data/train_data/{}').format("")
+    model_folder_path=(r'/data/horse/ws/s0095413-nuclei_segmentation/models/{}').format("")
     
 
-    applyresult_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/applyresult')
-    propresult_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/propresult')
-    segresult_folder_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/segmentationresult')
-    nuclei_folders_path=(r'/beegfs/ws/0/s0095413-nuclei_segmentation-workspace/new_nuclei')
+    applyresult_folder_path=(r'/data/horse/ws/s0095413-nuclei_segmentation/data/applyresult')
+    propresult_folder_path=(r'/data/horse/ws/s0095413-nuclei_segmentation/data/propresult')
+    segresult_folder_path=(r'/data/horse/ws/s0095413-nuclei_segmentation/data/segmentationresult')
+    nuclei_folders_path=(r'/data/horse/ws/s0095413-nuclei_segmentation/data/new_nuclei_for_segmentation')
 
     batch_size=20
     n_cores=4
@@ -57,7 +57,7 @@ gitPath=script_dir
 
 #mounted
 struct_nuclei_images_path=os.path.join(structured_data_path,'images','RAW_images_and_splitted','raw_images_nuclei')
-struct_masks_path=os.path.join(structured_data_path,'images','segmentation_pipline','masks_images')
+struct_masks_path=os.path.join(structured_data_path,'images','newNucleiSegmentation','segmentationresult')
 
 
 
