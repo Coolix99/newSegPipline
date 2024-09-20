@@ -511,11 +511,11 @@ def createTrainingDatafromCrop():
             MetaData_Example['masks file']='masks_patch.tif'
             MetaData_Example['flow file']='flow_patch.npz'
             MetaData_Example['profile file']='profile.npy'
-            MetaData_Example['XYZ size in mum']=Crop_MetaData['XYZ size in mum']
-            MetaData_Example['axes']=Crop_MetaData['axes']
-            MetaData_Example['is control']=Crop_MetaData['is control']
-            MetaData_Example['time in hpf']=Crop_MetaData['time in hpf']
-            MetaData_Example['experimentalist']=Crop_MetaData['experimentalist']
+            MetaData_Example['XYZ size in mum']=Crop_MetaData['Example_MetaData']['XYZ size in mum']
+            MetaData_Example['axes']=Crop_MetaData['Example_MetaData']['axes']
+            MetaData_Example['is control']=Crop_MetaData['Example_MetaData']['is control']
+            MetaData_Example['time in hpf']=Crop_MetaData['Example_MetaData']['time in hpf']
+            MetaData_Example['experimentalist']=Crop_MetaData['Example_MetaData']['experimentalist']
             writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
 
 if __name__ == "__main__":
