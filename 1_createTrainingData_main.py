@@ -399,11 +399,9 @@ def createTrainingDataFromSeg():
 
 def createTrainingDataCrop():
     seg_folder_list=os.listdir(segresult_folder_path)
-    seg_folder_list=['20240501_mAG-zGem_H2a-mcherry_144hpf_LM_1_nuclei',
-    '20240211_BRE-laux_GFP_H2A-mCh_126hpf_LM_5_nuclei',
-    '20231118_BRE-laux_GFP_H2A-mCh_120hpf_LM_1-1_nuclei',
-    '20240316_BRE-laux_GFP_H2A-mCh_54hpf_LM_8_nuclei',
-    '20231115_BRE-laux_GFP_H2A-mCh_48hpf_LM_4-2_nuclei']
+    seg_folder_list=[
+    '20240229_Smoc1_Smoc2-tilling_BRE-laux_GFP_H2A-mCh_60hpf_4_nuclei',
+    '20240309_Smoc1_Smoc2-tilling_BRE-laux_GFP_H2A-mCh_96hpf_2_nuclei']
     random.shuffle(seg_folder_list)
     for seg_folder in seg_folder_list:
         print(seg_folder)
@@ -476,11 +474,54 @@ def createTrainingDataCrop():
             MetaData_Example['genotype']=nuclei_MetaData['nuclei_image_MetaData']['genotype']
             writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
     
+def createTrainingDatafromCrop():
+    folder_list=os.listdir(crop_trainData_path)
+    
+    for folder in folder_list:
+        print(folder)
+
+        folder_path=os.path.join(crop_trainData_path,folder)
+        Crop_MetaData=get_JSON(folder_path)
+        nuclei_crop=getImage(os.path.join(folder_path,'nuclei_crop.tif'))
+        masks_crop=getImage(os.path.join(folder_path,'final_mask.tif'))
+        nuclei_profile=np.load(os.path.join(folder_path,'profile.npy'))
+
+        flow=calculateFlow(masks_crop)
+        
+        #create N examples from this
+        for i in range(30):
+            nuclei_patch,masks_patch,flow_patch=crop_trainData(nuclei_crop,masks_crop,flow, np.array(patch_size),d=3)
+            masks_patch=relabel_image(masks_patch).astype(np.int32)
+
+            example_folder_path=create_unique_subfolder(trainData_path)
+            print(example_folder_path)
+
+            tiff.imwrite(os.path.join(example_folder_path,'nuclei_patch.tif'), nuclei_patch, dtype=np.float32)
+            tiff.imwrite(os.path.join(example_folder_path,'masks_patch.tif'), masks_patch, dtype=np.int32)
+            np.savez_compressed(os.path.join(example_folder_path,'flow_patch.npz'), flow_patch)
+            np.save(os.path.join(example_folder_path,'profile.npy'),nuclei_profile)
+
+            MetaData_Example={}
+            repo = git.Repo(gitPath,search_parent_directories=True)
+            sha = repo.head.object.hexsha
+            MetaData_Example['git hash']=sha
+            MetaData_Example['git repo']='newSegPipline'
+            MetaData_Example['Example version']=Example_version
+            MetaData_Example['nuc file']='nuclei_patch.tif'
+            MetaData_Example['masks file']='masks_patch.tif'
+            MetaData_Example['flow file']='flow_patch.npz'
+            MetaData_Example['profile file']='profile.npy'
+            MetaData_Example['XYZ size in mum']=Crop_MetaData['XYZ size in mum']
+            MetaData_Example['axes']=Crop_MetaData['axes']
+            MetaData_Example['is control']=Crop_MetaData['is control']
+            MetaData_Example['time in hpf']=Crop_MetaData['time in hpf']
+            MetaData_Example['experimentalist']=Crop_MetaData['experimentalist']
+            writeJSON(example_folder_path,'Example_MetaData',MetaData_Example)
 
 if __name__ == "__main__":
-    createPreTrainingData()
+    #createPreTrainingData()
     #createTrainingData()
     #createTrainingDataFromSeg()
 
     #createTrainingDataCrop() #save crop, you can work after that on it
-        #todo: load such crop and 
+    createTrainingDatafromCrop() #load the worked image
