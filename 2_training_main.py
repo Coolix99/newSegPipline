@@ -337,5 +337,5 @@ def train_main():
             save_model(elapsed_time, model, epoch, avg_train_loss, avg_val_loss, 'training')
 
 if __name__ == "__main__":
-    pre_train_main()
-    #train_main()
+    #pre_train_main()
+    train_main()
