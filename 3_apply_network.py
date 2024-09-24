@@ -288,7 +288,7 @@ def apply_model_to_data():
         # Create dataset and dataloader
         dataset = ApplyDataset(nuc_img,scale, patch_size, overlap)
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-        
+        print('Data loaded')
         
         # Process patches
         processed_patches = []
