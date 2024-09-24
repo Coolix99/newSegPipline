@@ -294,7 +294,7 @@ def apply_model_to_data():
         processed_patches = []
         positions = []
 
-        for i,patches, profiles, pos in enumerate(dataloader):
+        for i,(patches, profiles, pos) in enumerate(dataloader):
             print(i)
             seg_patches, flow_patches = apply_model_to_patch(model, patches, profiles, device)
             processed_patches.extend(zip(seg_patches, flow_patches))
