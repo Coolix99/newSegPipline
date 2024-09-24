@@ -109,7 +109,7 @@ def reconstruct_image_from_patches(image_shape, patch_size, patches, positions):
     for (seg_patch, flow_patch), pos in zip(patches, positions):
         #print(seg_patch.shape)
         z, y, x = pos  # Extract the z, y, x positions
-        #print(pos)
+        print(pos)
         z_slice = slice(z, z + patch_size[0])
         y_slice = slice(y, y + patch_size[1])
         x_slice = slice(x, x + patch_size[2])
@@ -119,7 +119,7 @@ def reconstruct_image_from_patches(image_shape, patch_size, patches, positions):
         reconstructed_segmentation[z_slice, y_slice, x_slice] += seg_patch
         reconstructed_flows[:, z_slice, y_slice, x_slice] += flow_patch
         counts[z_slice, y_slice, x_slice] += 1
-    
+    print('end loop in reconstruct')
     nonzero_mask = counts > 0
     reconstructed_segmentation[nonzero_mask] /= counts[nonzero_mask]
     reconstructed_flows[:, nonzero_mask] /= counts[nonzero_mask]
@@ -294,18 +294,17 @@ def apply_model_to_data():
         processed_patches = []
         positions = []
 
-        for i,(patches, profiles, pos) in enumerate(dataloader):
-            print(i)
+        for patches, profiles, pos in dataloader:
             seg_patches, flow_patches = apply_model_to_patch(model, patches, profiles, device)
             processed_patches.extend(zip(seg_patches, flow_patches))
             positions.extend(pos)
         print('end of loop, start reconstruction')
         # Reconstruct full image
         segmentation, pred_flows = reconstruct_image_from_patches(dataset.image.shape, patch_size, processed_patches, positions)
-        
-        # Apply mask to zero out irrelevant areas
-        segmentation[dataset.image == 0] = 0
-        pred_flows[:, dataset.image == 0] = 0
+        print('end reconstruction')
+        # # Apply mask to zero out irrelevant areas
+        # segmentation[dataset.image == 0] = 0
+        # pred_flows[:, dataset.image == 0] = 0
         print(segmentation.shape)
         print(pred_flows.shape)
         
