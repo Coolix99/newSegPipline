@@ -8,7 +8,7 @@ import git
 from CPC.UNet3D import UNet3D
 from CPC.std_op import prepareData
 from CPC.CPC_config import patch_size
-from config import model_folder_path, pretrainData_path,batch_size,nuclei_folders_path,applyresult_folder_path,Apply_version,gitPath
+from config import model_folder_path, pretrainData_path,batch_size,nuclei_folders_path,applyresult_folder_path,Apply_version,gitPath,n_cores
 from IO import getImage, get_JSON,make_path,save_compressed_array,writeJSON,load_compressed_array
 
 class ExampleDataset(Dataset):
@@ -71,7 +71,7 @@ class ApplyDataset(Dataset):
     def __getitem__(self, idx):
         patch = self.patches[idx]
         position = self.positions[idx]
-        combined_patch = np.expand_dims(np.expand_dims(patch, axis=0), axis=0)  # Add channel and batch dimensions
+        combined_patch = np.expand_dims(patch, axis=0)
         combined_patch = np.ascontiguousarray(combined_patch)
         profile = np.ascontiguousarray(self.profile)
         return torch.from_numpy(combined_patch).float(), torch.from_numpy(profile).float(), position
@@ -287,7 +287,7 @@ def apply_model_to_data():
 
         # Create dataset and dataloader
         dataset = ApplyDataset(nuc_img,scale, patch_size, overlap)
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, pin_memory=True,num_workers=n_cores)
         print('Data loaded')
         
         # Process patches
