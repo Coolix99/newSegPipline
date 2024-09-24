@@ -15,9 +15,6 @@ def initialize_device(use_gpu=True):
     if use_gpu:
         device = cle.select_device(dev_type='gpu')
         print("Using GPU: ", device)
-    else:
-        device = cle.select_device(dev_type='cpu')
-        print("Using CPU: ", device)
 
 def getProfile(im):
     """
