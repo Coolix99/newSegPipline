@@ -4,17 +4,9 @@ from scipy.stats import iqr, kurtosis
 
 from CPC.CPC_config import *
 
-def initialize_device(use_gpu=True):
-    """
-    Select the appropriate device based on the flag.
-    If use_gpu is True, it will attempt to select a GPU; otherwise, it will select a CPU.
-    
-    Args:
-    - use_gpu (bool): Whether to use GPU or not. Defaults to True.
-    """
-    if use_gpu:
-        device = cle.select_device(dev_type='gpu')
-        print("Using GPU: ", device)
+
+device = cle.select_device(dev_type='gpu')
+print("Used GPU: ", device)
 
 def getProfile(im):
     """

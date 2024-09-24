@@ -166,8 +166,7 @@ def real_example():
     import os
     from config import nuclei_folders_path, applyresult_folder_path
     from IO import get_JSON, getImage, load_compressed_array
-    from CPC.std_op import prepareData,initialize_device
-    initialize_device()
+    from CPC.std_op import prepareData
     nuclei_folder_list = os.listdir(nuclei_folders_path)
     nuclei_folder_list =['20220611_mAG-zGem_H2a-mcherry_96hpf_LM_B2_analyzed_nuclei']
     for nuclei_folder in nuclei_folder_list:

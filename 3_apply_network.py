@@ -6,8 +6,7 @@ from simple_file_checksum import get_checksum
 import git
 
 from CPC.UNet3D import UNet3D
-from CPC.std_op import prepareData,initialize_device
-initialize_device()
+from CPC.std_op import prepareData
 from CPC.CPC_config import patch_size
 from config import model_folder_path, pretrainData_path,batch_size,nuclei_folders_path,applyresult_folder_path,Apply_version,gitPath,n_cores
 from IO import getImage, get_JSON,make_path,save_compressed_array,writeJSON,load_compressed_array

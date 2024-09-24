@@ -11,8 +11,7 @@ from config import *
 from IO import *
 
 from CPC.CPC_config import patch_size
-from CPC.std_op import prepareExample,initialize_device
-initialize_device()
+from CPC.std_op import prepareExample
 from CPC.dynamics import masks_to_flows_gpu_3d
 
 def crop_image_at_random(nuclei,masks, size:np.ndarray):
