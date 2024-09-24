@@ -299,6 +299,7 @@ def apply_model_to_data():
             seg_patches, flow_patches = apply_model_to_patch(model, patches, profiles, device)
             processed_patches.extend(zip(seg_patches, flow_patches))
             positions.extend(pos)
+        print('end of loop, start reconstruction')
         # Reconstruct full image
         segmentation, pred_flows = reconstruct_image_from_patches(dataset.image.shape, patch_size, processed_patches, positions)
         
