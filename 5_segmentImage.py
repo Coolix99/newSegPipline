@@ -7,7 +7,8 @@ from numba import njit
 import tifffile
 
 from IO import *
-from CPC.std_op import std_reverse_scaling
+from CPC.std_op import std_reverse_scaling,initialize_device
+initialize_device(use_gpu=False)
 
 def plot_clusters(labels, p):
     """
