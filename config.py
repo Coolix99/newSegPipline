@@ -23,8 +23,8 @@ if(machine=='Laptop'):
 if(machine=='BA'):
     structured_data_path=(r'/media/max_kotz/structured_data/{}').format("")
 
-    nuclei_folders_path=(r'/media/max_kotz/structured_data/images/RAW_images_and_splitted/raw_images_nuclei').format("")
-    applyresult_folder_path=(r'/media/max_kotz/seg_on_cluster/applyresult/{}').format("")
+    nuclei_folders_path=(r'/media/max_kotz/structured_data/images/RAW_images_and_splitted/raw_images_nuclei')
+    applyresult_folder_path=(r'/media/max_kotz/random_data/applyresult/')
     propresult_folder_path=(r'/media/max_kotz/seg_on_cluster/propresult/{}').format("")
     model_folder_path=(r'/media/max_kotz/seg_on_cluster/models/{}').format("")
     pretrainData_path=(r'/media/max_kotz/seg_on_cluster/pre_train_data/{}').format("")

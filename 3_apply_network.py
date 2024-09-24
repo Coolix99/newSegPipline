@@ -220,7 +220,7 @@ def plot_result(nuc_img,segmentation,pred_flows):
     viewer = napari.Viewer()
     viewer.add_image(nuc_img, name='3D Nuc')
     viewer.add_labels(segmentation, name='seg')
-    z, y, x = np.nonzero(segmentation)
+    z, y, x = np.nonzero(segmentation) 
     origins = np.stack((z, y, x), axis=-1)
     flow_vector_field = pred_flows.transpose(1, 2, 3, 0)
     vectors = flow_vector_field[z, y, x]
@@ -375,8 +375,8 @@ def load_and_plot():
         plot_result(nuclei,segmentation,pred_flows)
     
 
-        return
+        
 
 if __name__ == "__main__":
-    #apply_model_to_data()
-    load_and_plot()
+    apply_model_to_data()
+    #load_and_plot()
