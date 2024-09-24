@@ -88,7 +88,7 @@ def load_model(name, device):
     n_channels = 1  # Adjust this if your input has more channels
     context_size = 8
     model = UNet3D(n_channels, context_size).to(device)
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.load_state_dict(torch.load(model_path, map_location=device,weights_only=False))
     model.eval()
     return model,get_checksum(model_path, algorithm="SHA1")
 
