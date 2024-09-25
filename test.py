@@ -88,11 +88,9 @@ def compute_boundary_proxy(vector_field, sigma=1.0):
     curl = compute_curl(vector_field_smooth)
     curl_magnitude = np.linalg.norm(curl, axis=-1)
     
-    # Since divergence can be positive or negative, take absolute value
-    divergence_abs = np.abs(divergence)
-    
+  
     # Normalize divergence and curl magnitude to [0, 1]
-    divergence_norm = (divergence_abs - divergence_abs.min()) / (divergence_abs.max() - divergence_abs.min() + 1e-8)
+    divergence_norm = (divergence - divergence.min()) / (divergence.max() - divergence.min() + 1e-8)
     curl_norm = (curl_magnitude - curl_magnitude.min()) / (curl_magnitude.max() - curl_magnitude.min() + 1e-8)
     
     # Define thresholds (you may need to adjust these based on your data)
@@ -100,8 +98,8 @@ def compute_boundary_proxy(vector_field, sigma=1.0):
     curl_threshold = 0.5
     
     # Create masks
-    center_mask = (divergence_norm > divergence_threshold) & (curl_norm < curl_threshold)
-    boundary_mask = (divergence_norm < divergence_threshold) & (curl_norm > curl_threshold)
+    center_mask = (divergence_norm > divergence_threshold) 
+    boundary_mask = (divergence_norm < divergence_threshold)
     
     # For visualization, create an array with different labels
     # 0: background, 1: center, 2: boundary
@@ -208,7 +206,7 @@ def real_example():
         pred_flows=pred_flows[:,426:535,129:614,163:457]
 
 
-        plot_result(nuclei,segmentation,pred_flows)
+        #plot_result(nuclei,segmentation,pred_flows)
         
         # Transpose pred_flows to match expected shape
         vector_field = pred_flows.transpose(1, 2, 3, 0)
@@ -216,12 +214,15 @@ def real_example():
         
         # Compute the labels
         labels, divergence_norm, curl_norm = compute_boundary_proxy(vector_field, sigma=1.0)
+        print(divergence_norm.shape, curl_norm.shape)
         print('labels.shape:', labels.shape)
-        
+    
         import napari
 
         viewer = napari.Viewer()
         viewer.add_image(nuclei, name='3D Nuc')
+        viewer.add_image(divergence_norm, name='divergence_norm')
+        viewer.add_image(curl_norm, name='curl_norm')
         viewer.add_labels(labels, name='labels')
         z, y, x = np.nonzero(nuclei) 
         origins = np.stack((z, y, x), axis=-1)

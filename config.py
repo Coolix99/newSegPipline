@@ -25,12 +25,12 @@ if(machine=='BA'):
 
     nuclei_folders_path=(r'/media/max_kotz/structured_data/images/RAW_images_and_splitted/raw_images_nuclei')
     applyresult_folder_path=(r'/media/max_kotz/random_data/applyresult/')
-    propresult_folder_path=(r'/media/max_kotz/seg_on_cluster/propresult/{}').format("")
-    model_folder_path=(r'/media/max_kotz/seg_on_cluster/models/{}').format("")
+    propresult_folder_path=(r'/media/max_kotz/random_data/propresult/{}').format("")
+    model_folder_path=(r'/media/max_kotz/random_data/models/{}').format("")
     pretrainData_path=(r'/media/max_kotz/seg_on_cluster/pre_train_data/{}').format("")
     trainData_path=(r'/media/max_kotz/seg_on_cluster/train_data/{}').format("")
     crop_trainData_path=(r'/media/max_kotz/share_summer/annotation_nuclei/{}').format("")
-    segresult_folder_path=(r'/media/max_kotz/structured_data/images/newNucleiSegmentation/segmentationresult')
+    segresult_folder_path=(r'/media/max_kotz/random_data/segmentationresult')
     batch_size=4
     n_cores=6
 

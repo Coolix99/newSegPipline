@@ -97,8 +97,8 @@ def apply_model_to_patch(model, patch, profile, device):
         patch = patch.to(device)
         profile = profile.to(device)
         seg_logits, pred_flows = model(patch, profile)
-        segmentation = torch.argmax(seg_logits, dim=1).cpu().numpy()[0]
-        pred_flows = pred_flows.cpu().numpy()[0]
+        segmentation = torch.argmax(seg_logits, dim=1).cpu().numpy()
+        pred_flows = pred_flows.cpu().numpy()
     return segmentation, pred_flows
 
 def reconstruct_image_from_patches(image_shape, patch_size, patches, positions):
@@ -220,12 +220,12 @@ def plot_result(nuc_img,segmentation,pred_flows):
     viewer = napari.Viewer()
     viewer.add_image(nuc_img, name='3D Nuc')
     viewer.add_labels(segmentation, name='seg')
-    z, y, x = np.nonzero(segmentation) 
-    origins = np.stack((z, y, x), axis=-1)
-    flow_vector_field = pred_flows.transpose(1, 2, 3, 0)
-    vectors = flow_vector_field[z, y, x]
-    vector_data = np.stack((origins, vectors), axis=1)
-    viewer.add_vectors(vector_data, name='3D Flow Field pred', edge_width=0.1, length=1, ndim=3,edge_color='blue')
+    # z, y, x = np.nonzero(segmentation) 
+    # origins = np.stack((z, y, x), axis=-1)
+    # flow_vector_field = pred_flows.transpose(1, 2, 3, 0)
+    # vectors = flow_vector_field[z, y, x]
+    # vector_data = np.stack((origins, vectors), axis=1)
+    # viewer.add_vectors(vector_data, name='3D Flow Field pred', edge_width=0.1, length=1, ndim=3,edge_color='blue')
 
     napari.run()
 
@@ -258,7 +258,7 @@ def evalStatus_apply(nuclei_folder_path,res_folder_path,model_checksum):
 def apply_model_to_data():
     # Load model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model,model_checksum = load_model('pretraining', device)
+    model,model_checksum = load_model('training', device)
 
     nuclei_folder_list = os.listdir(nuclei_folders_path)
     for nuclei_folder in nuclei_folder_list:
