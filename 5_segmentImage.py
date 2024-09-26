@@ -163,6 +163,7 @@ def do_masks():
         print(nuc_img.shape)
 
         seg_result=np.zeros_like(nuc_img,dtype=np.int32)
+        seg = seg.astype(seg_result.dtype, copy=False)
         seg_result[0:seg.shape[0],0:seg.shape[1],0:seg.shape[2]]=seg
 
         #plot_compare(nuc_img,seg_result)
