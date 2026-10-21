@@ -1,7 +1,7 @@
 import os
-from config import nuclei_folders_path,applyresult_folder_path,propresult_folder_path,segresult_folder_path
-from IO import get_JSON,getImage,load_compressed_array,loadArr
-from CPC.std_op import prepareData
+from old.config import nuclei_folders_path,applyresult_folder_path,propresult_folder_path,segresult_folder_path
+from old.IO import get_JSON,getImage,load_compressed_array,loadArr
+from old.CPC.std_op import prepareData
 import numpy as np 
 import napari
 

@@ -7,11 +7,11 @@ import torch.nn as nn
 import time
 import git
 
-from NucleiDataset import NucleiDataset
-from config import *
-from IO import *
+from old.NucleiDataset import NucleiDataset
+from old.config import *
+from old.IO import *
 
-from CPC.UNet3D import UNet3D
+from old.CPC.UNet3D import UNet3D
 
 def plot_example(nuc_img, masks_img, flow):
     flow_vector_field = flow.transpose(1, 2, 3, 0)

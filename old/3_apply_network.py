@@ -5,11 +5,11 @@ from torch.utils.data import DataLoader, Dataset
 from simple_file_checksum import get_checksum
 import git
 
-from CPC.UNet3D import UNet3D
-from CPC.std_op import prepareData
-from CPC.CPC_config import patch_size
-from config import model_folder_path, pretrainData_path,batch_size,nuclei_folders_path,applyresult_folder_path,Apply_version,gitPath,n_cores
-from IO import getImage, get_JSON,make_path,save_compressed_array,writeJSON,load_compressed_array
+from old.CPC.UNet3D import UNet3D
+from old.CPC.std_op import prepareData
+from old.CPC.CPC_config import patch_size
+from old.config import model_folder_path, pretrainData_path,batch_size,nuclei_folders_path,applyresult_folder_path,Apply_version,gitPath,n_cores
+from old.IO import getImage, get_JSON,make_path,save_compressed_array,writeJSON,load_compressed_array
 
 class ExampleDataset(Dataset):
     def __init__(self, image, profile, patch_size, overlap):

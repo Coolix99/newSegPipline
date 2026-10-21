@@ -1,0 +1,53 @@
+# No command-line arguments: edit this file only.
+# ALL data, pretrained caches and results are outside the Git repository.
+# Override data_root for another machine with the VSEG_DATA_ROOT environment variable.
+seed: 37
+data_root: /media/ssd2/vinita_segmentation
+manual_dir: examples_gt
+old_results_dir: examples_segmented_results
+weak_dir: experiment_data/weak_patches
+feature_dir: experiment_cache/features
+output_dir: experiments/01_3d_nuclei_experiments
+model_cache_dir: experiment_cache/pretrained_weights
+
+# Compare ALL eight models; completed results are reused by default.
+models: [N0_original, N1_residual, N2_anisotropic, N3_aniso_residual, N4_xy_hybrid, N5_microsam_xy, N6_microsam_xyz, N7_cpdino_xy]
+reuse_completed: true  # false to deliberately retrain and overwrite a model
+incomplete_checkpoint: finalize
+early_stopping_patience: 6
+base_channels: 16           # N0 retains original layout
+batch_size: 1
+num_workers: 0
+learning_rate: 0.0001
+weight_decay: 0.00001
+max_epochs: 30
+max_minutes_per_model: 20
+validation_every: 2
+foreground_weight: 1.0
+flow_weight: 3.0
+pretrain_weak: false         # Requires paired old raw images and precomputed flow patches
+weak_pretrain_minutes: 10
+weak_foreground_weight: 0.5
+weak_flow_weight: 0.2
+normalization: existing     # Samples are ALREADY normalized
+augmentation: geometry_only  # XY 90-degree rotation, flip X, flip Z ONLY
+# Reconstruction defaults: used in 01_compare_models.py; unchanged from the baseline.
+propagation_steps: 50
+propagation_rate: 0.2
+dbscan_eps: 3.0
+dbscan_min_samples: 27
+foreground_threshold: 0.5
+# ONLY used by 02_sweep_reconstruction.py (not by model training).
+# These lists test alternative reconstruction values on SAVED predictions.
+sweep_steps: [20, 50, 70]
+sweep_eps: [2.5, 3.0, 4.0]
+sweep_min_samples: [12, 27]
+# Evaluate both validation patches when available; limited by the time cap.
+sweep_max_cases: 2
+# Stop the sweep for each model after this many minutes.
+sweep_max_minutes_per_model: 5
+
+# N5/N6/N7 are skipped unless their *real* pretrained embeddings exist.
+# Run 04_cache_foundation.py first. Begin with microsam, then enable cpdino.
+foundation_encoders: [microsam, cpdino]  # Cache N5, N6, N7 (needs pretrained weights)
+allow_foundation_tiny_patches: true     # Allow the five 64^3 example crops (preliminary only)

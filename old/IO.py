@@ -6,7 +6,7 @@ import os
 import json
 #import git
 
-from config import *
+from old.config import *
 
 import h5py
 

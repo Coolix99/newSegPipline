@@ -2,7 +2,7 @@ import pyclesperanto_prototype as cle
 import numpy as np
 from scipy.stats import iqr, kurtosis
 
-from CPC.CPC_config import *
+from old.CPC.CPC_config import *
 
 
 device = cle.select_device(dev_type='gpu')

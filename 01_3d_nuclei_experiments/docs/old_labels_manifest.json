@@ -1,0 +1,44 @@
+[
+  {
+    "folder": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A1_analyzed_nuclei",
+    "old_segmentation_file": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A1_analyzed_nuclei_seg.tiff",
+    "matching_nuclei_image_required": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A1_analyzed_nuclei.tif",
+    "raw_image_name": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A1_analyzed.ims-fiji-volume.tif"
+  },
+  {
+    "folder": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A2_analyzed_nuclei",
+    "old_segmentation_file": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A2_analyzed_nuclei_seg.tiff",
+    "matching_nuclei_image_required": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A2_analyzed_nuclei.tif",
+    "raw_image_name": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A2_analyzed.ims-fiji-volume.tif"
+  },
+  {
+    "folder": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A3_analyzed_nuclei",
+    "old_segmentation_file": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A3_analyzed_nuclei_seg.tiff",
+    "matching_nuclei_image_required": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A3_analyzed_nuclei.tif",
+    "raw_image_name": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_A3_analyzed.ims-fiji-volume.tif"
+  },
+  {
+    "folder": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B1_analyzed_nuclei",
+    "old_segmentation_file": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B1_analyzed_nuclei_seg.tiff",
+    "matching_nuclei_image_required": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B1_analyzed_nuclei.tif",
+    "raw_image_name": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B1_analyzed.ims-fiji-volume.tif"
+  },
+  {
+    "folder": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B2_analyzed_nuclei",
+    "old_segmentation_file": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B2_analyzed_nuclei_seg.tiff",
+    "matching_nuclei_image_required": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B2_analyzed_nuclei.tif",
+    "raw_image_name": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B2_analyzed.ims-fiji-volume.tif"
+  },
+  {
+    "folder": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B3_analyzed_nuclei",
+    "old_segmentation_file": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B3_analyzed_nuclei_seg.tiff",
+    "matching_nuclei_image_required": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B3_analyzed_nuclei.tif",
+    "raw_image_name": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_B3_analyzed.ims-fiji-volume.tif"
+  },
+  {
+    "folder": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_C1_analyzed_nuclei",
+    "old_segmentation_file": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_C1_analyzed_nuclei_seg.tiff",
+    "matching_nuclei_image_required": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_C1_analyzed_nuclei.tif",
+    "raw_image_name": "20220609_mAG-zGem_H2a-mcherry_60hpf_LM_C1_analyzed.ims-fiji-volume.tif"
+  }
+]

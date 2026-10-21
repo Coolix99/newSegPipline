@@ -1,0 +1,10 @@
+numpy>=1.26
+scipy>=1.12
+torch>=2.3
+tifffile>=2024.2
+# Optional performance acceleration: numba (compatible llvmlite required)
+scikit-learn>=1.4
+matplotlib>=3.8
+PyYAML>=6.0
+pytest>=8.0
+# Optional: napari[all], micro-sam, cellpose (including its DINOv3 dependencies)

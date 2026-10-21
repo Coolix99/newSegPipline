@@ -7,12 +7,12 @@ import uuid
 import torch
 import tifffile as tiff
 
-from config import *
-from IO import *
+from old.config import *
+from old.IO import *
 
-from CPC.CPC_config import patch_size
-from CPC.std_op import prepareExample
-from CPC.dynamics import masks_to_flows_gpu_3d
+from old.CPC.CPC_config import patch_size
+from old.CPC.std_op import prepareExample
+from old.CPC.dynamics import masks_to_flows_gpu_3d
 
 def crop_image_at_random(nuclei,masks, size:np.ndarray):
     """

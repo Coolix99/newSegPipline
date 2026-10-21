@@ -1,8 +1,8 @@
 import git
 from simple_file_checksum import get_checksum
 
-from IO import *
-from CPC import dynamics
+from old.IO import *
+from old.CPC import dynamics
 
 def calculate_prop_points(flow_file,mask_file):
     """INPUT"""

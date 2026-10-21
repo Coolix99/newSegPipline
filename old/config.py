@@ -1,6 +1,6 @@
 import os
 
-from config_machine import *
+from old.config_machine import *
 
 if(machine=='Home'):
     model_folder_path=None
